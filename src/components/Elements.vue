@@ -96,7 +96,7 @@ export default class Elements extends Vue {
   }
 
   private adjustCanvas () {
-    this.canvas.style.transform = `translate(${window.scrollX}px, ${window.scrollY}px)`
+    this.canvas.style.transform = `translate(${window.pageXOffset}px, ${window.pageYOffset}px)`
     if (this.canvas.width !== this.canvas.clientWidth || this.canvas.height !== this.canvas.clientHeight) {
       this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight, false)
     }
