@@ -149,7 +149,7 @@ export default class Elements extends Vue {
     const hardcodedAspectRatio = 0.954545
     const camera = new THREE.PerspectiveCamera(90, hardcodedAspectRatio, 1, 10)
     camera.position.z = 2
-    const chunkSize = 20
+    const chunkSize = 10
     let i = 0
     for (const isotopes of this.nuclides) {
       if (!isotopes) continue
@@ -184,7 +184,7 @@ export default class Elements extends Vue {
     const attributes = new Float32Array(count * 3)
 
     const a = 1
-    const scale = 1e14
+    const scale = 8e13
     let offset = 0
     let radius
     let c: [number, number, number]
@@ -360,8 +360,9 @@ export default class Elements extends Vue {
             vec3 lightDir = normalize(lightPos - hitObject.point);
             float diffuse = max(0., mat.diffuse * dot(normal, lightDir));
             float specular = pow(max(0., mat.specular * dot(lightDir, reflect(ray, normal))), mat.shininess);
-            float shadow = mat.receiveShadows * softShadow(hitObject.point, lightDir) * ambientOcclusion(hitObject.point, normal);
-            return (mat.ambient + diffuse * shadow) * pow(mat.color, gammaCorrection) + specular * shadow * vec3(1.);
+            float shadow = 1.; //mat.receiveShadows * softShadow(hitObject.point, lightDir);
+            // shadow *= ambientOcclusion(hitObject.point, normal);
+            return (mat.ambient + diffuse * shadow) * pow(mat.color, gammaCorrection) + specular * shadow;
         }
         vec4 getColor(in vec3 origin, in vec3 direction) {
             HitObject hitObject;
