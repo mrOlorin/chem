@@ -90,6 +90,9 @@ export default class Elements extends Vue {
     window.addEventListener('resize', (e: Event) => {
       this.adjustCanvas()
     })
+    window.addEventListener('touchmove', (e: Event) => {
+      this.adjustCanvas()
+    })
   }
 
   private adjustCanvas () {
