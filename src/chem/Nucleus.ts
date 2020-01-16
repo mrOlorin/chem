@@ -34,7 +34,7 @@ export default class Nucleus {
     return this.Z + this.N
   }
 
-  // Радиус
+  // Радиус в метрах
   public get R (): number {
     return r0 * Math.pow(this.A, 1 / 3)
   }

@@ -8,22 +8,22 @@
                         <circle cx="75" cy="75" :r="nuclide.R * 2e15" fill="red" stroke="blue" stroke-width="2">
                             <title>Радиус ({{nuclide.R}}м)</title>
                         </circle>
-                        <text y="10" x="2" font-size="0.5em">
+                        <text y="10" x="2" font-size="0.6em">
                             <title>Массовое число</title>
                             {{nuclide.A}}
                         </text>
-                        <text y="19" x="2" font-size="0.5em" >
+                        <text y="21" x="2" font-size="0.6em">
                             <title>Атомное число</title>
                             {{nuclide.Z}}
                         </text>
-                        <text y="17" :x="10 + 3 * nuclide.A.toString().length" font-size="1em">
+                        <text y="19" :x="10 + 3 * nuclide.A.toString().length" font-size="1.2em">
                             {{nuclide.name}}
                         </text>
-                        <text y="10" x="50" font-size="0.5em">
+                        <text y="10" x="50" font-size="0.6em">
                             <title>Спин</title>
                             {{nuclide.spin}}ħ
                         </text>
-                        <text y="19" x="50" font-size="0.5em">
+                        <text y="21" x="50" font-size="0.6em">
                             {{nuclide.magneticMoment.toPrecision(2)}}μN
                             <title>Магнитный момент ({{nuclide.magneticMoment}}μN)</title>
                         </text>
@@ -34,19 +34,23 @@
     </div>
 </template>
 <script lang="ts">
+import * as THREE from 'three'
 import { Component, Vue } from 'vue-property-decorator'
 import Nucleus from '@/chem/Nucleus'
-import * as THREE from 'three'
 import ISOTOPES from '@/chem/isotopes'
 import ParticleBuilder from '@/chem/ParticleBuilder'
+import Stats from 'three/examples/jsm/libs/stats.module.js'
 
 @Component
 export default class Elements extends Vue {
   private nuclides: Array<Array<Nucleus>> = []
   private canvas!: HTMLCanvasElement
   private renderer!: THREE.WebGLRenderer
+  private camera!: THREE.Camera
   private scenes: Array<THREE.Scene> = []
+  private visibleScenes: Array<THREE.Scene> = []
   private doRender: boolean = false
+  private stats!: Stats
 
   private beforeMount () {
     this.nuclides = []
@@ -59,86 +63,64 @@ export default class Elements extends Vue {
   }
 
   private async mounted () {
-    this.initRenderer()
-    this.initEvents()
+    this.canvas = document.getElementById('c') as HTMLCanvasElement
+    const contextAttributes: WebGLContextAttributes = {
+      alpha: true,
+      antialias: false
+    }
+    const context = this.canvas.getContext('webgl2', contextAttributes) as WebGLRenderingContext
+    const renrederParameters: THREE.WebGLRendererParameters = {
+      canvas: this.canvas,
+      context,
+      antialias: false
+    }
+    this.renderer = new THREE.WebGLRenderer(renrederParameters)
+    this.renderer.setPixelRatio(window.devicePixelRatio)
+    this.stats = Stats()
+    this.$el.appendChild(this.stats.domElement)
+    this.startRenderLoop()
     this.initScenes()
+    this.addEventListeners()
     this.adjustCanvas()
   }
 
   private beforeDestroy () {
+    this.stopRenderLoop()
+    this.removeEventListeners()
+  }
+
+  private stopRenderLoop () {
     this.doRender = false
   }
 
-  private initRenderer () {
-    this.canvas = document.getElementById('c') as HTMLCanvasElement
-    const context = this.canvas.getContext('webgl2', { alpha: true }) as WebGLRenderingContext
-    this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, context, antialias: true })
-    this.renderer.setClearColor(0xffffff, 1)
-    this.renderer.setPixelRatio(window.devicePixelRatio)
-    this.initRenderLoop()
-  }
-
-  private async initEvents () {
-    const f = this.$el.scrollWidth / (this.$el.scrollHeight)
-    this.$el.addEventListener('wheel', (e: Event) => {
-      e.preventDefault()
-      window.scrollBy((e as WheelEvent).deltaY * f, (e as WheelEvent).deltaY)
-    })
-    document.addEventListener('scroll', (e: Event) => {
-      this.adjustCanvas()
-    })
-    window.addEventListener('resize', (e: Event) => {
-      this.adjustCanvas()
-    })
-    document.addEventListener('touchmove', (e: Event) => {
-      this.adjustCanvas()
-    })
-    document.addEventListener('gesturechange', (e: Event) => {
-      this.adjustCanvas()
-    })
-  }
-
-  private adjustCanvas () {
-    this.canvas.style.transform = `translate(${window.pageXOffset}px, ${window.pageYOffset}px)`
-    if (this.canvas.width !== this.canvas.clientWidth || this.canvas.height !== this.canvas.clientHeight) {
-      this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight, false)
-    }
-  }
-
-  private initRenderLoop () {
-    const dirtyHack = -95
+  private startRenderLoop () {
+    const dirtyHackY = -100
+    const dirtyHackX = -10
     const area = new THREE.Vector4()
-    let rect: ClientRect
-    const render = (time: number) => {
-      time *= 0.01
-      this.renderer.setScissorTest(false)
-      this.renderer.clear()
-      this.renderer.setScissorTest(true)
-      for (const scene of this.scenes) {
-        rect = scene.userData.element.getBoundingClientRect()
-        if (rect.bottom < 0 || rect.top > this.renderer.domElement.clientHeight ||
-          rect.right < 0 || rect.left > this.renderer.domElement.clientWidth) {
-          // off screen
-          continue
-        }
-        time += 1.7;
-        ((scene.children[0] as THREE.Points).material as THREE.ShaderMaterial).uniforms.uTime.value = time
-        area.set(
-          rect.left,
-          this.renderer.domElement.clientHeight - rect.top + dirtyHack,
-          rect.right - rect.left,
-          rect.bottom - rect.top
-        )
-        this.renderer.setViewport(area)
-        this.renderer.setScissor(area)
-        this.renderer.render(scene, scene.userData.camera)
-      }
-    }
+    let x: number
+    let y: number
+    let z: number
+    let w: number
+    this.renderer.setScissorTest(true)
+
     this.doRender = true
     const animate = (time: number) => {
+      time *= 0.01
+      for (let i = 0, len = this.visibleScenes.length; i < len; i++) {
+        time += 1;
+        ((this.visibleScenes[i].children[0] as THREE.Points).material as THREE.ShaderMaterial).uniforms.uTime.value = time
+        const rect: ClientRect = this.visibleScenes[i].userData.element.getBoundingClientRect()
+        x = rect.left + dirtyHackX
+        y = this.renderer.domElement.clientHeight - rect.top + dirtyHackY
+        z = rect.right - rect.left
+        w = rect.bottom - rect.top
+        this.renderer.setViewport(x, y, z, w)
+        this.renderer.setScissor(x, y, z, w)
+        this.renderer.render(this.visibleScenes[i], this.camera)
+      }
+      this.stats.update()
       if (this.doRender) {
         requestAnimationFrame(animate)
-        render(time)
       }
     }
     animate(0)
@@ -147,10 +129,12 @@ export default class Elements extends Vue {
   private async initScenes (): Promise<void> {
     const material = this.buildMaterial()
     const hardcodedAspectRatio = 0.954545
-    const camera = new THREE.PerspectiveCamera(90, hardcodedAspectRatio, 1, 10)
-    camera.position.z = 2
+    this.camera = new THREE.PerspectiveCamera(90, hardcodedAspectRatio, 1, 5)
+    this.camera.position.z = 2
     const chunkSize = 10
     let i = 0
+    this.scenes = []
+    this.visibleScenes = []
     for (const isotopes of this.nuclides) {
       if (!isotopes) continue
       for (const isotope of isotopes) {
@@ -158,12 +142,13 @@ export default class Elements extends Vue {
         const scene = new THREE.Scene()
         scene.background = new THREE.Color(1, 1, 1)
         scene.userData.element = document.getElementById(`isotope-${isotope.Z}-${isotope.N}`) as HTMLElement
-        scene.userData.camera = camera
         scene.add(new THREE.Points(this.buildGeometry(isotope), material))
         this.scenes.push(scene)
-        if (i++ >= chunkSize) {
+        if (this.isVisible(scene.userData.element)) {
+          this.visibleScenes.push(scene)
+        }
+        if (i++ % chunkSize === 0) {
           await new Promise(requestAnimationFrame)
-          i = 0
         }
       }
     }
@@ -174,8 +159,8 @@ export default class Elements extends Vue {
       const q = Math.sqrt(1 + a * a * t * t)
       return [
         Math.cos(t) / q,
-        -(a * t) / q,
-        Math.sin(t) / q
+        Math.sin(t) / q,
+        -(a * t) / q
       ]
     }
 
@@ -183,29 +168,29 @@ export default class Elements extends Vue {
     const positions = new Float32Array(count * 3)
     const attributes = new Float32Array(count * 3)
 
-    const a = 1
-    const scale = 8e13
+    let a = 1
+    const scale = 1.5e14
     let offset = 0
     let radius
     let c: [number, number, number]
     for (let i = Number.EPSILON; i < isotope.Z; i++) {
-      radius = isotope.R
+      radius = isotope.R * scale
       c = sphericalCurve(a / i, isotope.Z - i)
-      positions[offset] = c[0] * radius * scale
+      positions[offset] = c[0] * radius
       attributes[offset++] = 1
-      positions[offset] = c[1] * radius * scale
+      positions[offset] = c[1] * radius
       attributes[offset++] = 0
-      positions[offset] = c[2] * radius * scale
+      positions[offset] = c[2] * radius
       attributes[offset++] = isotope.spin
     }
     for (let i = Number.EPSILON; i < isotope.N; i++) {
-      radius = isotope.R
-      c = sphericalCurve(-a / i, isotope.N - i)
-      positions[offset] = c[0] * radius * scale
+      radius = isotope.R * scale
+      c = sphericalCurve(a / i, isotope.N - i)
+      positions[offset] = c[0] * radius
       attributes[offset++] = 0
-      positions[offset] = c[1] * radius * scale
+      positions[offset] = c[1] * radius
       attributes[offset++] = 1
-      positions[offset] = c[2] * radius * scale
+      positions[offset] = c[2] * radius
       attributes[offset++] = isotope.spin
     }
 
@@ -221,12 +206,15 @@ export default class Elements extends Vue {
       extensions: {
         derivatives: false,
         fragDepth: false,
-        drawBuffers: true,
+        drawBuffers: false,
         shaderTextureLOD: false
       },
+      blending: THREE.MultiplyBlending,
+      depthTest: true,
+      transparent: true,
       uniforms: {
         uTime: { value: 0.0 },
-        pointSize: { value: 15 }
+        pointSize: { value: 12 }
       },
       vertexShader: `
         #define PI 3.141592653589793
@@ -239,21 +227,19 @@ export default class Elements extends Vue {
         out vec3 lightPos;
 
         vec3 getPosition(vec3 p) {
-            p.z += .035 * sin(uTime * attributes.x + p.x + p.y);
-            p.x += .025 * cos(uTime * attributes.y + p.x + p.y);
+            p.y += .1 * sin(uTime + attributes.x + p.x + p.y);
+            p.x += .1 * cos(uTime + attributes.y + p.x + p.y);
             return p;
         }
+
         void main() {
             vec3 rayDirection = vec3(0, 0, -1);
             vec3 forward = normalize(rayDirection);
             vec3 right = normalize(cross(vec3(0., 1., 0.), forward));
             vec3 up = normalize(cross(forward, right));
             camera = mat3(right, up, forward);
-
-            vec3 p = getPosition(position);
             gl_PointSize = pointSize;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4( p, 1.0 );
-
+            gl_Position = projectionMatrix * modelViewMatrix * vec4( getPosition(position), 1.0 );
             vPosition = gl_Position;
             vAttributes = attributes;
             lightPos = vec3(2., 2., 2.);
@@ -261,7 +247,7 @@ export default class Elements extends Vue {
     `,
       fragmentShader: `
         #define PI 3.141592653589793
-        #define MAX_STEPS 64
+        #define MAX_STEPS 32
         #define PLANK_LENGTH .01
         #define FOG_DIST 11.
         #define MAX_DIST FOG_DIST
@@ -289,6 +275,7 @@ export default class Elements extends Vue {
             float distance;
             Material material;
         };
+
         float getDistance(vec3 p) {
             p -= vec3(0, 0, -2. - vAttributes.y * .5);
             return length(p) - .5;
@@ -303,6 +290,7 @@ export default class Elements extends Vue {
             m.receiveShadows = 1.;
             return m;
         }
+
         void rayMarch(inout HitObject obj, in vec3 rayOrigin, in vec3 rayDirection, float plankLength) {
             float stepDistance;
             obj.distance = plankLength;
@@ -360,8 +348,7 @@ export default class Elements extends Vue {
             vec3 lightDir = normalize(lightPos - hitObject.point);
             float diffuse = max(0., mat.diffuse * dot(normal, lightDir));
             float specular = pow(max(0., mat.specular * dot(lightDir, reflect(ray, normal))), mat.shininess);
-            float shadow = 1.; //mat.receiveShadows * softShadow(hitObject.point, lightDir);
-            // shadow *= ambientOcclusion(hitObject.point, normal);
+            float shadow = 1.; // mat.receiveShadows * softShadow(hitObject.point, lightDir) * ambientOcclusion(hitObject.point, normal);
             return (mat.ambient + diffuse * shadow) * pow(mat.color, gammaCorrection) + specular * shadow;
         }
         vec4 getColor(in vec3 origin, in vec3 direction) {
@@ -378,11 +365,52 @@ export default class Elements extends Vue {
             vec2 uv = gl_PointCoord - vec2(.5);
             gl_FragColor = getColor(vec3(0,0,0), normalize(camera * vec3(uv, .6)));
         }
-    `,
-      blending: THREE.MultiplyBlending,
-      depthTest: true,
-      transparent: true
+    `
     })
+  }
+
+  private addEventListeners () {
+    this.$el.addEventListener('wheel', this.onWheel)
+    window.addEventListener('scroll', this.adjustCanvas)
+    window.addEventListener('resize', this.adjustCanvas)
+    window.addEventListener('touchmove', this.adjustCanvas)
+    window.addEventListener('gesturechange', this.adjustCanvas)
+  }
+
+  private removeEventListeners () {
+    this.$el.removeEventListener('wheel', this.onWheel)
+    window.removeEventListener('scroll', this.adjustCanvas)
+    window.removeEventListener('resize', this.adjustCanvas)
+    window.removeEventListener('touchmove', this.adjustCanvas)
+    window.removeEventListener('gesturechange', this.adjustCanvas)
+  }
+
+  private onWheel (e: Event) {
+    const f = this.$el.scrollWidth / (this.$el.scrollHeight)
+    e.preventDefault()
+    window.scrollBy((e as WheelEvent).deltaY * f, (e as WheelEvent).deltaY)
+  }
+
+  private adjustCanvas () {
+    this.canvas.style.transform = `translate(${window.pageXOffset}px, ${window.pageYOffset}px)`
+    if (this.canvas.width !== this.canvas.clientWidth || this.canvas.height !== this.canvas.clientHeight) {
+      this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight, false)
+    }
+    this.visibleScenes = []
+    for (const scene of this.scenes) {
+      if (this.isVisible(scene.userData.element)) {
+        this.visibleScenes.push(scene)
+      }
+    }
+  }
+
+  private isVisible (element: HTMLElement): boolean {
+    if (!element) return false
+    const rect = element.getBoundingClientRect()
+    return !(
+      rect.bottom < 0 || rect.top > this.renderer.domElement.clientHeight ||
+      rect.right < 0 || rect.left > this.renderer.domElement.clientWidth
+    )
   }
 }
 </script>
@@ -395,6 +423,7 @@ export default class Elements extends Vue {
         height: 100%;
         z-index: -1;
     }
+
     .element {
         cursor: default;
         height: 80px;

@@ -1,31 +1,31 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "280c768d539f88a3f574",
+    "revision": "f57f10fdc0d0b38ba2d4",
     "url": "/chem/dist/css/app.cbd0c9e4.css"
   },
   {
-    "revision": "50bc66f0313a6cb79553",
+    "revision": "4173c186f1bae50f9ce6",
     "url": "/chem/dist/css/nuclides.430903ba.css"
   },
   {
-    "revision": "5eee851f3e39d8f84428b8b72176b9a4",
+    "revision": "05a9746ec1cadf0d1d119a4d0d790545",
     "url": "/chem/dist/index.html"
   },
   {
-    "revision": "930ebe8c7bbbf47ef163",
-    "url": "/chem/dist/js/about.7e359d54.js"
+    "revision": "dd0c6bb229679924c226",
+    "url": "/chem/dist/js/about.ce373af7.js"
   },
   {
-    "revision": "280c768d539f88a3f574",
-    "url": "/chem/dist/js/app.8059c504.js"
+    "revision": "f57f10fdc0d0b38ba2d4",
+    "url": "/chem/dist/js/app.7b82cea2.js"
   },
   {
     "revision": "f38ca4afaff61c253af9",
     "url": "/chem/dist/js/chunk-vendors.d99626b6.js"
   },
   {
-    "revision": "50bc66f0313a6cb79553",
-    "url": "/chem/dist/js/nuclides.c071f6d9.js"
+    "revision": "4173c186f1bae50f9ce6",
+    "url": "/chem/dist/js/nuclides.759ba053.js"
   },
   {
     "revision": "ed72f0237e51587d6f66597880916208",
