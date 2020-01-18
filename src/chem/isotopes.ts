@@ -118,6 +118,6 @@ const ISOTOPES: Array<[number, number]> = [
   [172, 176],
   [173, 177], // 173 ?
   [174, 177], // 174, 175 ?
-  [175, 177] // 177 ?
-]
-export default ISOTOPES
+  [175, 177], // 177 ?
+];
+export default ISOTOPES;
