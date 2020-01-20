@@ -12,8 +12,8 @@ export default class NuclideMesh extends THREE.Points {
     this.material = NuclideMesh.mat;
   }
 
-  public tick = (time: number) => {
-    (this.material as THREE.ShaderMaterial).uniforms.uTime.value = time + this.isotope.magneticMoment * 10;
+  public tick = (time: number, deltTime: number) => {
+    (this.material as THREE.ShaderMaterial).uniforms.uTime.value = time + this.isotope.magneticMoment;
   }
 
   private buildGeometry (isotope: Nucleus) {
@@ -22,38 +22,41 @@ export default class NuclideMesh extends THREE.Points {
       return [
         Math.cos(t) / q,
         Math.sin(t) / q,
-        -(a * t) / q
+        -(a * t) / q,
       ];
     };
+    const getA = (isotope: Nucleus): number => {
+      return (isotope.bindingEnergy / isotope.A) * (isotope.magneticMoment / isotope.A);
+    };
+    const positions = new Float32Array(isotope.A * 3);
+    const attributes = new Float32Array(isotope.A * 3);
 
-    const count = isotope.Z + isotope.N;
-    const positions = new Float32Array(count * 3);
-    const attributes = new Float32Array(count * 3);
-
-    let a = 1;
+    let aSign = 1;
     const scale = 1.5e14;
     let offset = 0;
     let radius;
     let c: [number, number, number];
     for (let i = Number.EPSILON; i < isotope.Z; i++) {
       radius = isotope.R * scale;
-      c = sphericalCurve(a / i, isotope.Z - i);
+      aSign = -aSign;
+      c = sphericalCurve(aSign * getA(isotope) / i, isotope.Z - i);
       positions[offset] = c[0] * radius;
       attributes[offset++] = 1;
       positions[offset] = c[1] * radius;
       attributes[offset++] = 0;
       positions[offset] = c[2] * radius;
-      attributes[offset++] = isotope.spin;
+      attributes[offset++] = isotope.bindingEnergy / isotope.A;
     }
     for (let i = Number.EPSILON; i < isotope.N; i++) {
       radius = isotope.R * scale;
-      c = sphericalCurve(a / i, isotope.N - i);
+      aSign = -aSign;
+      c = sphericalCurve(aSign * getA(isotope) / i, isotope.N - i);
       positions[offset] = c[0] * radius;
       attributes[offset++] = 0;
       positions[offset] = c[1] * radius;
       attributes[offset++] = 1;
       positions[offset] = c[2] * radius;
-      attributes[offset++] = isotope.spin;
+      attributes[offset++] = isotope.bindingEnergy / isotope.A;
     }
 
     const geometry = new THREE.BufferGeometry();
@@ -71,7 +74,7 @@ export default class NuclideMesh extends THREE.Points {
         drawBuffers: false,
         shaderTextureLOD: false
       },
-      blending: THREE.MultiplyBlending,
+      blending: THREE.NormalBlending,
       depthTest: true,
       transparent: true,
       uniforms: {
@@ -86,15 +89,15 @@ export default class NuclideMesh extends THREE.Points {
         uniform float pointSize;
         uniform float uTime;
         out mat3 camera;
-        out vec3 lightPos;
 
         vec3 getPosition(vec3 p) {
-            p.y += .1 * sin(.01 * uTime + attributes.x);
-            p.x += .1 * cos(.01 * uTime + attributes.y);
+            p.x += .05 * sin(1.1 * uTime + attributes.x + p.x + p.y + p.z);
+            p.y += .05 * cos(1.3 * uTime + attributes.y + p.x + p.y + p.z);
             return p;
         }
 
         void main() {
+            vAttributes = attributes;
             vec3 rayDirection = vec3(0, 0, -1);
             vec3 forward = normalize(rayDirection);
             vec3 right = normalize(cross(vec3(0., 1., 0.), forward));
@@ -103,8 +106,6 @@ export default class NuclideMesh extends THREE.Points {
             gl_PointSize = pointSize;
             gl_Position = projectionMatrix * modelViewMatrix * vec4( getPosition(position), 1.0 );
             vPosition = gl_Position;
-            vAttributes = attributes;
-            lightPos = vec3(2., 2., 2.);
         }
     `,
       fragmentShader: `
@@ -114,7 +115,6 @@ export default class NuclideMesh extends THREE.Points {
         #define FOG_DIST 11.
         #define MAX_DIST FOG_DIST
         #define FOG_COLOR vec3(1.,1.,1.)
-        in vec3 lightPos;
         in mat3 camera;
         varying vec4 vPosition;
         varying vec3 vAttributes;
@@ -139,15 +139,15 @@ export default class NuclideMesh extends THREE.Points {
         };
 
         float getDistance(vec3 p) {
-            p -= vec3(0, 0, -2. - vAttributes.y * .5);
+            p -= vec3(0, 0, -1. - vAttributes.y * .5);
             return length(p) - .5;
         }
         Material getMaterial(vec3 p) {
             Material m;
             m.color = vec3(vAttributes.x, vAttributes.y, 0.);
-            m.diffuse = .4;
-            m.specular = .3;
-            m.ambient = .3;
+            m.diffuse = .5;
+            m.specular = .4;
+            m.ambient = .4;
             m.shininess = 1.;
             m.receiveShadows = 1.;
             return m;
@@ -159,10 +159,7 @@ export default class NuclideMesh extends THREE.Points {
             for (int i = 0; i < MAX_STEPS; i++) {
                 stepDistance = abs(getDistance(rayOrigin + rayDirection * obj.distance));
                 obj.distance += stepDistance;
-                if (stepDistance < plankLength) {
-                    break;
-                }
-                if (obj.distance >= FOG_DIST) {
+                if (stepDistance < plankLength || obj.distance >= FOG_DIST) {
                     break;
                 }
             }
@@ -170,7 +167,7 @@ export default class NuclideMesh extends THREE.Points {
         }
         vec3 getNormal(in HitObject hitObject) {
             vec2 offset = vec2(.01, 0);
-            return normalize(hitObject.distance - vec3(
+            return normalize(getDistance(hitObject.point) - vec3(
                 getDistance(hitObject.point - offset.xyy),
                 getDistance(hitObject.point - offset.yxy),
                 getDistance(hitObject.point - offset.yyx)
@@ -207,10 +204,10 @@ export default class NuclideMesh extends THREE.Points {
         }
         vec3 phongLighting(in HitObject hitObject, in Material mat, in vec3 ray) {
             vec3 normal = getNormal(hitObject);
-            vec3 lightDir = normalize(lightPos - hitObject.point);
+            vec3 lightDir = normalize(vec3(-6., -3., 3.) - hitObject.point);
             float diffuse = max(0., mat.diffuse * dot(normal, lightDir));
             float specular = pow(max(0., mat.specular * dot(lightDir, reflect(ray, normal))), mat.shininess);
-            float shadow = 1.; // mat.receiveShadows * softShadow(hitObject.point, lightDir) * ambientOcclusion(hitObject.point, normal);
+            float shadow = mat.receiveShadows * softShadow(hitObject.point, lightDir) * ambientOcclusion(hitObject.point, normal);
             return (mat.ambient + diffuse * shadow) * pow(mat.color, gammaCorrection) + specular * shadow;
         }
         vec4 getColor(in vec3 origin, in vec3 direction) {

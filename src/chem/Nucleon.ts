@@ -26,6 +26,14 @@ export default class Nucleon {
     return spin;
   }
 
+  public get mass (): number {
+    let mass = 0;
+    for (const quark of this.quarks) {
+      mass += quark.mass;
+    }
+    return mass;
+  }
+
   // Барионное число
   public get B (): number {
     return this.quarks.length / 3;

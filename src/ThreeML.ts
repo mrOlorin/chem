@@ -9,6 +9,7 @@ export default class ThreeML {
   private scenes: Array<THREE.Scene> = [];
   private visibleScenes: Array<THREE.Scene> = [];
   private doRender: boolean = false;
+  public timeScale: number = 0.01;
 
   public constructor (canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -32,14 +33,14 @@ export default class ThreeML {
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setScissorTest(true);
     const cynicallyHardcodedAspectRatio = 0.954545;
-    this.camera = new THREE.PerspectiveCamera(90, cynicallyHardcodedAspectRatio, 1, 5);
-    this.camera.position.z = 2;
+    this.camera = new THREE.PerspectiveCamera(90, cynicallyHardcodedAspectRatio, 1, 10);
+    this.camera.position.z = 2.5;
     this.stats = Stats();
     (this.canvas.parentElement as HTMLElement).appendChild(this.stats.domElement);
     this.startRender();
   }
 
-  public addScene (scene: THREE.Scene, element: HTMLElement, tick: (time: number) => void = () => undefined) {
+  public addScene (scene: THREE.Scene, element: HTMLElement, tick: (time: number, deltaTime: number) => void = () => undefined) {
     scene.userData.element = element;
     scene.userData.tick = tick;
     this.scenes.push(scene);
@@ -50,24 +51,28 @@ export default class ThreeML {
 
   public startRender () {
     const dirtyHackY = -100;
-    const dirtyHackX = -10;
     let x: number;
     let y: number;
-    let z: number;
-    let w: number;
+    let width: number;
+    let height: number;
     this.doRender = true;
+    let previousTime = 0;
+    let deltaTime = 0;
     const animate = (time: number) => {
+      time *= this.timeScale;
+      deltaTime = time - previousTime;
       for (let i = 0, len = this.visibleScenes.length; i < len; i++) {
-        this.visibleScenes[i].userData.tick(time);
         const rect: ClientRect = this.visibleScenes[i].userData.element.getBoundingClientRect();
-        x = rect.left + dirtyHackX;
+        x = rect.left;
         y = this.renderer.domElement.clientHeight - rect.top + dirtyHackY;
-        z = rect.right - rect.left;
-        w = rect.bottom - rect.top;
-        this.renderer.setViewport(x, y, z, w);
-        this.renderer.setScissor(x, y, z, w);
+        width = rect.right - rect.left;
+        height = rect.bottom - rect.top;
+        this.renderer.setViewport(x, y, width, height);
+        this.renderer.setScissor(x, y, width, height);
+        this.visibleScenes[i].userData.tick(time, deltaTime);
         this.renderer.render(this.visibleScenes[i], this.camera);
       }
+      previousTime = time;
       this.stats.update();
       if (this.doRender) {
         requestAnimationFrame(animate);
