@@ -5,7 +5,11 @@
         <table id="table">
             <tr v-for="(isotopes, i) in nuclides" v-bind:key="i">
                 <td v-for="(nuclide, j) in isotopes" v-bind:key="j" :id="`isotope-${i}-${j}`">
-                    <Nuclide v-if="nuclide" :nuclide="nuclide" />
+                    <div v-if="nuclide">
+                        <router-link :to="`/nuclide/${nuclide.Z}-${nuclide.N}`">
+                            <NuclideInfo :nuclide="nuclide" />
+                        </router-link>
+                    </div>
                 </td>
             </tr>
         </table>
@@ -19,12 +23,12 @@ import ISOTOPES from '@/chem/isotopes';
 import ParticleBuilder from '@/chem/ParticleBuilder';
 import NuclideMesh from '@/chem/NuclideMesh';
 import ThreeML from '@/ThreeML';
-import Nuclide from '@/components/Nuclide.vue';
+import NuclideInfo from '@/components/NuclideInfo.vue';
 
 @Component({
-  components: { Nuclide }
+  components: { NuclideInfo }
 })
-export default class Elements extends Vue {
+export default class NuclideList extends Vue {
   private nuclides: Array<Array<Nucleus>> = [];
   private nuclidesCount: number = 0;
   private threeML!: ThreeML;
@@ -43,7 +47,7 @@ export default class Elements extends Vue {
 
   private mounted () {
     this.threeML = new ThreeML(document.getElementById('n-canvas') as HTMLCanvasElement);
-    this.initScenes();
+    this.initScenes(25);
     this.addEventListeners();
   }
 
@@ -52,15 +56,16 @@ export default class Elements extends Vue {
     this.removeEventListeners();
   }
 
-  private async initScenes (chunkSize: number = 13): Promise<void> {
+  private async initScenes (chunkSize: number): Promise<void> {
     let i = 0;
     const progressBar = this.$refs.progress as HTMLProgressElement;
     for (const isotopes of this.nuclides) {
       if (!isotopes) continue;
       for (const isotope of isotopes) {
         if (!isotope) continue;
-        const el = document.getElementById(`isotope-${isotope.Z}-${isotope.N}`) as HTMLElement;
-        const mesh = new NuclideMesh(isotope);
+        const el: HTMLElement | null = document.getElementById(`isotope-${isotope.Z}-${isotope.N}`);
+        if (!el) continue;
+        const mesh = new NuclideMesh(isotope, 12, 1.5);
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(1, 1, 1);
         scene.add(mesh);

@@ -1,9 +1,10 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
+import { RouteConfig } from 'vue-router/types/router';
 
 Vue.use(VueRouter);
 
-const routes = [
+const routes: Array<RouteConfig> = [
   {
     path: '/about',
     name: 'about',
@@ -14,8 +15,14 @@ const routes = [
   },
   {
     path: '/',
-    name: 'elements',
-    component: () => import(/* webpackChunkName: "nuclides" */ '../views/Elements.vue'),
+    name: 'nuclideList',
+    component: () => import(/* webpackChunkName: "nuclideList" */ '../views/NuclideList.vue'),
+  },
+  {
+    path: '/nuclide/:p-:n',
+    name: 'nuclide',
+    component: () => import(/* webpackChunkName: "nuclide" */ '../views/Nuclide.vue'),
+    props: (route) => ({ p: +route.params.p, n: +route.params.n })
   }
 ];
 

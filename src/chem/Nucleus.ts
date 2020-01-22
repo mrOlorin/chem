@@ -5,16 +5,12 @@ import Nucleon from '@/chem/Nucleon';
 export type Parity = -1 | 0 | 1;
 
 export default class Nucleus {
-  public readonly protons: Array<Nucleon>
-  public readonly neutrons: Array<Nucleon>
+  public readonly protons: Array<Nucleon>;
+  public readonly neutrons: Array<Nucleon>;
 
   constructor (protons: Array<Nucleon>, neutrons: Array<Nucleon>) {
     this.protons = protons;
     this.neutrons = neutrons;
-  }
-
-  public get nucleons () {
-    return [...this.protons, ...this.neutrons];
   }
 
   public get name (): string {
@@ -53,16 +49,22 @@ export default class Nucleus {
 
   public get spin (): number {
     let spin = 0;
-    for (const nucleon of this.nucleons) {
-      spin += nucleon.spin;
+    for (let i = 0, len = this.protons.length; i < len; i++) {
+      spin += this.protons[i].spin;
+    }
+    for (let i = 0, len = this.neutrons.length; i < len; i++) {
+      spin += this.neutrons[i].spin;
     }
     return spin;
   }
 
   public get mass (): number {
     let mass = 0;
-    for (const nucleon of this.nucleons) {
-      mass += nucleon.mass;
+    for (let i = 0, len = this.protons.length; i < len; i++) {
+      mass += this.protons[i].mass;
+    }
+    for (let i = 0, len = this.neutrons.length; i < len; i++) {
+      mass += this.neutrons[i].mass;
     }
     return mass;
   }

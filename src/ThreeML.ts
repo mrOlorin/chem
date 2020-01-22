@@ -2,12 +2,12 @@ import * as THREE from 'three';
 import Stats from 'three/examples/jsm/libs/stats.module';
 
 export default class ThreeML {
-  private canvas: HTMLCanvasElement;
-  private renderer: THREE.WebGLRenderer;
-  private camera: THREE.Camera;
-  private stats: Stats;
-  private scenes: Array<THREE.Scene> = [];
-  private visibleScenes: Array<THREE.Scene> = [];
+  private readonly canvas: HTMLCanvasElement;
+  private readonly renderer: THREE.WebGLRenderer;
+  private readonly camera: THREE.Camera;
+  private readonly stats: Stats;
+  private readonly scenes: Array<THREE.Scene> = [];
+  private readonly visibleScenes: Array<THREE.Scene> = [];
   private doRender: boolean = false;
   public timeScale: number = 0.01;
 
@@ -50,23 +50,26 @@ export default class ThreeML {
   }
 
   public startRender () {
-    const dirtyHackY = -100;
+    this.doRender = true;
+    this.addEventListeners();
+    this.adjustCanvas();
+
     let x: number;
     let y: number;
     let width: number;
     let height: number;
-    this.doRender = true;
     let previousTime = 0;
     let deltaTime = 0;
-    const animate = (time: number) => {
+    let rect: ClientRect;
+    const animate = (time: number): void => {
       time *= this.timeScale;
       deltaTime = time - previousTime;
       for (let i = 0, len = this.visibleScenes.length; i < len; i++) {
-        const rect: ClientRect = this.visibleScenes[i].userData.element.getBoundingClientRect();
+        rect = this.visibleScenes[i].userData.element.getBoundingClientRect();
         x = rect.left;
-        y = this.renderer.domElement.clientHeight - rect.top + dirtyHackY;
-        width = rect.right - rect.left;
-        height = rect.bottom - rect.top;
+        y = this.renderer.domElement.clientHeight - rect.bottom;
+        width = rect.width;
+        height = rect.height;
         this.renderer.setViewport(x, y, width, height);
         this.renderer.setScissor(x, y, width, height);
         this.visibleScenes[i].userData.tick(time, deltaTime);
@@ -78,8 +81,6 @@ export default class ThreeML {
         requestAnimationFrame(animate);
       }
     };
-    this.addEventListeners();
-    this.adjustCanvas();
     animate(0);
   }
 
@@ -103,7 +104,7 @@ export default class ThreeML {
     if (this.canvas.width !== this.canvas.clientWidth || this.canvas.height !== this.canvas.clientHeight) {
       this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight, false);
     }
-    this.visibleScenes = [];
+    this.visibleScenes.length = 0;
     for (const scene of this.scenes) {
       if (this.isVisible(scene.userData.element)) {
         this.visibleScenes.push(scene);

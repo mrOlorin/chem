@@ -1,6 +1,6 @@
 <template>
-    <div class="elements">
-        <Nuclides />
+    <div class="nuclide-list">
+        <NuclideList />
     </div>
 </template>
 
@@ -9,7 +9,7 @@
 export default {
   name: 'home',
   components: {
-    Nuclides: () => import('@/components/Nuclides.vue')
+    NuclideList: () => import('@/components/NuclideList.vue')
   }
 };
 </script>

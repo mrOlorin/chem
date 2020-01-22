@@ -2,21 +2,23 @@ import * as THREE from 'three';
 import Nucleus from './Nucleus';
 
 export default class NuclideMesh extends THREE.Points {
-  private static mat: THREE.ShaderMaterial = NuclideMesh.buildMaterial();
+  private static commonMaterial: THREE.ShaderMaterial = NuclideMesh.buildMaterial();
+  public material: THREE.ShaderMaterial;
   private readonly isotope: Nucleus;
 
-  public constructor (isotope: Nucleus) {
+  public constructor (isotope: Nucleus, pointSize: number = 10, scale: number = 1) {
     super();
     this.isotope = isotope;
-    this.geometry = this.buildGeometry(this.isotope);
-    this.material = NuclideMesh.mat;
+    this.material = NuclideMesh.commonMaterial;
+    this.material.uniforms.pointSize.value = pointSize;
+    this.geometry = this.buildGeometry(this.isotope, scale * 1e14);
   }
 
   public tick = (time: number, deltTime: number) => {
-    (this.material as THREE.ShaderMaterial).uniforms.uTime.value = time + this.isotope.magneticMoment;
+    this.material.uniforms.uTime.value = time + this.isotope.magneticMoment;
   }
 
-  private buildGeometry (isotope: Nucleus) {
+  private buildGeometry (isotope: Nucleus, scale: number) {
     const sphericalCurve = (a: number, t: number): [number, number, number] => {
       const q = Math.sqrt(1 + a * a * t * t);
       return [
@@ -32,7 +34,6 @@ export default class NuclideMesh extends THREE.Points {
     const attributes = new Float32Array(isotope.A * 3);
 
     let aSign = 1;
-    const scale = 1.5e14;
     let offset = 0;
     let radius;
     let c: [number, number, number];
@@ -86,6 +87,7 @@ export default class NuclideMesh extends THREE.Points {
         in vec3 attributes;
         varying vec4 vPosition;
         varying vec3 vAttributes;
+        varying vec3 lightPos;
         uniform float pointSize;
         uniform float uTime;
         out mat3 camera;
@@ -104,8 +106,10 @@ export default class NuclideMesh extends THREE.Points {
             vec3 up = normalize(cross(forward, right));
             camera = mat3(right, up, forward);
             gl_PointSize = pointSize;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4( getPosition(position), 1.0 );
+            vec3 p = getPosition(position);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4( p, 1.0 );
             vPosition = gl_Position;
+            lightPos = p - vec3(5., 2., 0.);
         }
     `,
       fragmentShader: `
@@ -118,7 +122,7 @@ export default class NuclideMesh extends THREE.Points {
         in mat3 camera;
         varying vec4 vPosition;
         varying vec3 vAttributes;
-        uniform float pointSize;
+        varying vec3 lightPos;
         uniform float uTime;
         const vec3 gammaCorrection = vec3(1.0 / 2.2);
         struct Material {
@@ -204,7 +208,7 @@ export default class NuclideMesh extends THREE.Points {
         }
         vec3 phongLighting(in HitObject hitObject, in Material mat, in vec3 ray) {
             vec3 normal = getNormal(hitObject);
-            vec3 lightDir = normalize(vec3(-6., -3., 3.) - hitObject.point);
+            vec3 lightDir = normalize(lightPos - hitObject.point);
             float diffuse = max(0., mat.diffuse * dot(normal, lightDir));
             float specular = pow(max(0., mat.specular * dot(lightDir, reflect(ray, normal))), mat.shininess);
             float shadow = mat.receiveShadows * softShadow(hitObject.point, lightDir) * ambientOcclusion(hitObject.point, normal);
