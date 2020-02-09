@@ -33,7 +33,7 @@ export default class ThreeML {
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setScissorTest(true);
     const cynicallyHardcodedAspectRatio = 0.954545;
-    this.camera = new THREE.PerspectiveCamera(90, cynicallyHardcodedAspectRatio, 1, 10);
+    this.camera = new THREE.PerspectiveCamera(90, cynicallyHardcodedAspectRatio, 1, 20);
     this.camera.position.z = 2.5;
     this.stats = Stats();
     (this.canvas.parentElement as HTMLElement).appendChild(this.stats.domElement);
