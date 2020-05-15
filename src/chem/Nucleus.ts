@@ -7,10 +7,12 @@ export type Parity = -1 | 0 | 1;
 export default class Nucleus {
   public readonly protons: Array<Nucleon>;
   public readonly neutrons: Array<Nucleon>;
+  public readonly nucleons: Array<Nucleon>;
 
   constructor (protons: Array<Nucleon>, neutrons: Array<Nucleon>) {
     this.protons = protons;
     this.neutrons = neutrons;
+    this.nucleons = this.protons.concat(this.neutrons);
   }
 
   public get name (): string {
@@ -22,10 +24,6 @@ export default class Nucleus {
     return this.protons.length;
   }
 
-  public get electricCharge (): number {
-    return this.Z;
-  }
-
   // Число нейтронов (изотопическое число)
   public get N (): number {
     return this.neutrons.length;
@@ -33,7 +31,11 @@ export default class Nucleus {
 
   // Массовое число
   public get A (): number {
-    return this.Z + this.N;
+    return this.nucleons.length;
+  }
+
+  public get electricCharge (): number {
+    return this.nucleons.map(n => n.electricCharge).reduce((charge, prev) => charge + prev);
   }
 
   // Радиус в метрах
@@ -48,25 +50,11 @@ export default class Nucleus {
   }
 
   public get spin (): number {
-    let spin = 0;
-    for (let i = 0, len = this.protons.length; i < len; i++) {
-      spin += this.protons[i].spin;
-    }
-    for (let i = 0, len = this.neutrons.length; i < len; i++) {
-      spin += this.neutrons[i].spin;
-    }
-    return spin;
+    return this.nucleons.map(n => n.spin).reduce((p, prev) => p + prev);
   }
 
   public get mass (): number {
-    let mass = 0;
-    for (let i = 0, len = this.protons.length; i < len; i++) {
-      mass += this.protons[i].mass;
-    }
-    for (let i = 0, len = this.neutrons.length; i < len; i++) {
-      mass += this.neutrons[i].mass;
-    }
-    return mass;
+    return this.nucleons.map(n => n.mass).reduce((p, prev) => p + prev);
   }
 
   public get parity (): Parity {

@@ -1,13 +1,13 @@
 <template>
     <div class="nuclide-list">
-        <canvas id="n-canvas"/>
+        <canvas ref="scene"/>
         <progress title="Инициализация сцен" ref="progress" value="0" :max="nuclidesCount"/>
         <table id="table">
             <tr v-for="(isotopes, i) in nuclides" v-bind:key="i">
                 <td v-for="(nuclide, j) in isotopes" v-bind:key="j" :id="`isotope-${i}-${j}`">
                     <div v-if="nuclide">
                         <router-link :to="`/nuclide/${nuclide.Z}-${nuclide.N}`">
-                            <NuclideInfo :nuclide="nuclide" />
+                            <NuclideInfo :nuclide="nuclide"/>
                         </router-link>
                     </div>
                 </td>
@@ -17,48 +17,38 @@
 </template>
 <script lang="ts">
 import * as THREE from 'three';
-import { Component, Vue } from 'vue-property-decorator';
+import { Component, Prop, Vue } from 'vue-property-decorator';
 import Nucleus from '@/chem/Nucleus';
-import ISOTOPES from '@/chem/isotopes';
-import ParticleBuilder from '@/chem/ParticleBuilder';
 import NuclideMesh from '@/chem/NuclideMesh';
-import ThreeML from '@/ThreeML';
+import MultiThree from '@/MultiThree';
 import NuclideInfo from '@/components/NuclideInfo.vue';
 
 @Component({
   components: { NuclideInfo }
 })
 export default class NuclideList extends Vue {
-  private nuclides: Array<Array<Nucleus>> = [];
-  private nuclidesCount: number = 0;
-  private threeML!: ThreeML;
+  @Prop(Array) private nuclides!: Array<Array<Nucleus>>;
+  @Prop(Number) private nuclidesCount!: number;
+  private multiThree!: MultiThree;
 
-  private beforeMount () {
-    this.nuclides = [];
-    for (let protons = 1; protons <= 118; protons++) {
-      this.nuclides[protons] = [];
-      for (let neutrons = ISOTOPES[protons][0]; neutrons <= ISOTOPES[protons][1]; neutrons++) {
-        this.nuclides[protons][neutrons] = ParticleBuilder.buildNucleus(protons, neutrons);
-        Object.freeze(this.nuclides[protons][neutrons]);
-        this.nuclidesCount++;
-      }
-    }
-  }
-
-  private mounted () {
-    this.threeML = new ThreeML(document.getElementById('n-canvas') as HTMLCanvasElement);
-    this.initScenes(25);
+  private async mounted () {
+    console.time('Рендерер готов');
+    this.multiThree = new MultiThree(this.$refs.scene as HTMLCanvasElement);
+    console.timeEnd('Рендерер готов');
+    this.initScenes(10);
     this.addEventListeners();
   }
 
-  private beforeDestroy () {
-    this.threeML.stopRender();
+  private async beforeDestroy () {
+    this.multiThree.stopRender();
     this.removeEventListeners();
   }
 
   private async initScenes (chunkSize: number): Promise<void> {
+    console.time('Все сцены готовы');
     let i = 0;
     const progressBar = this.$refs.progress as HTMLProgressElement;
+    const backgroundColor = new THREE.Color(1, 1, 1);
     for (const isotopes of this.nuclides) {
       if (!isotopes) continue;
       for (const isotope of isotopes) {
@@ -67,9 +57,9 @@ export default class NuclideList extends Vue {
         if (!el) continue;
         const mesh = new NuclideMesh(isotope, 12, 1.5);
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(1, 1, 1);
+        scene.background = backgroundColor;
         scene.add(mesh);
-        this.threeML.addScene(scene, el, mesh.tick);
+        this.multiThree.addScene(scene, el, mesh.tick);
         if (i++ % chunkSize === 0) {
           progressBar.value = i;
           await new Promise(requestAnimationFrame);
@@ -77,6 +67,7 @@ export default class NuclideList extends Vue {
       }
     }
     progressBar.hidden = true;
+    console.timeEnd('Все сцены готовы');
   }
 
   private addEventListeners () {

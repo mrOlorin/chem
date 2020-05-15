@@ -51,8 +51,8 @@ export default class NuclideMesh extends THREE.Points {
         out mat3 camera;
 
         vec3 getPosition(vec3 p) {
-          p.x += .05 * sin(.9 * uTime + attributes.x + p.x + p.y + p.z);
-          p.y += .05 * cos(.7 * uTime + attributes.y + p.x + p.y + p.z);
+          p.x += .02 * sin(.9 * uTime + attributes.x + p.x + p.y + p.z);
+          p.y += .02 * cos(.7 * uTime + attributes.y + p.x + p.y + p.z);
           return p;
         }
 
@@ -64,10 +64,10 @@ export default class NuclideMesh extends THREE.Points {
           vec3 up = normalize(cross(forward, right));
           camera = mat3(right, up, forward);
           vec3 p = getPosition(position);
-          gl_PointSize = pointSize * (.8 + .2 * sin(uTime + attributes.x + attributes.y + p.x * p.y * 10.));
+          gl_PointSize = pointSize;
           gl_Position = projectionMatrix * modelViewMatrix * vec4( p, 1.0 );
           vPosition = gl_Position;
-          lightPos = p - vec3(5., 2., 0.);
+          lightPos = p - vec3(5.*sin(uTime*.4), 5.*cos(uTime*.3), -5.);
         }
     `,
       fragmentShader: `
@@ -102,7 +102,8 @@ export default class NuclideMesh extends THREE.Points {
 
         float getDistance(vec3 p) {
           p -= vec3(0, 0, -1. - vAttribute.y * .5);
-          return length(p) - .5;
+          vec2 q = vec2(length(p.xy)-.5, p.z);
+          return length(q)-.2;
         }
         Material getMaterial(vec3 p) {
           Material m;
@@ -115,13 +116,13 @@ export default class NuclideMesh extends THREE.Points {
           return m;
         }
 
-        void rayMarch(inout HitObject obj, in vec3 rayOrigin, in vec3 rayDirection, float plankLength) {
+        void rayMarch(inout HitObject obj, in vec3 rayOrigin, in vec3 rayDirection) {
           float stepDistance;
-          obj.distance = plankLength;
+          obj.distance = PLANK_LENGTH;
           for (int i = 0; i < MAX_STEPS; i++) {
             stepDistance = abs(getDistance(rayOrigin + rayDirection * obj.distance));
             obj.distance += stepDistance;
-            if (stepDistance < plankLength || obj.distance >= FOG_DIST) {
+            if (stepDistance < PLANK_LENGTH || obj.distance >= FOG_DIST) {
               break;
             }
           }
@@ -174,7 +175,7 @@ export default class NuclideMesh extends THREE.Points {
         }
         vec4 getColor(in vec3 origin, in vec3 direction) {
           HitObject hitObject;
-          rayMarch(hitObject, origin, direction, PLANK_LENGTH);
+          rayMarch(hitObject, origin, direction);
           if (hitObject.distance >= FOG_DIST) {
             discard;
           }

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import Stats from 'three/examples/jsm/libs/stats.module';
 
-export default class ThreeML {
+export default class MultiThree {
   private readonly canvas: HTMLCanvasElement;
   private readonly renderer: THREE.WebGLRenderer;
   private readonly camera: THREE.Camera;
@@ -32,7 +32,7 @@ export default class ThreeML {
     this.renderer = new THREE.WebGLRenderer(renrederParameters);
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setScissorTest(true);
-    const cynicallyHardcodedAspectRatio = 0.954545;
+    const cynicallyHardcodedAspectRatio = 1;
     this.camera = new THREE.PerspectiveCamera(90, cynicallyHardcodedAspectRatio, 1, 20);
     this.camera.position.z = 2.5;
     this.stats = Stats();
@@ -52,7 +52,7 @@ export default class ThreeML {
   public startRender () {
     this.doRender = true;
     this.addEventListeners();
-    this.adjustCanvas();
+    requestAnimationFrame(this.adjustCanvas);
 
     let x: number;
     let y: number;

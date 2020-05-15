@@ -11,6 +11,10 @@
         <text y="19" :x="10 + 3 * nuclide.A.toString().length" font-size="1.2em">
             {{nuclide.name}}
         </text>
+        <text y="10" x="60" font-size="0.6em">
+            <title>Масса</title>
+            {{nuclide.mass}}
+        </text>
     </svg>
 </template>
 <script lang="ts">

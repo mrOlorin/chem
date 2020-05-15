@@ -9,7 +9,7 @@
 import * as THREE from 'three';
 import { Component, Prop, Vue } from 'vue-property-decorator';
 import Nucleus from '@/chem/Nucleus';
-import ThreeML from '@/ThreeML';
+import MultiThree from '@/MultiThree';
 import ParticleBuilder from '@/chem/ParticleBuilder';
 import NuclideMesh from '@/chem/NuclideMesh';
 import NuclideInfo from '@/components/NuclideInfo.vue';
@@ -20,7 +20,7 @@ import NuclideInfo from '@/components/NuclideInfo.vue';
 export default class Nuclide extends Vue {
   @Prop(Number) private p!: number;
   @Prop(Number) private n!: number;
-  private threeML!: ThreeML;
+  private threeML!: MultiThree;
   private nuclide!: Nucleus;
 
   private beforeMount () {
@@ -28,7 +28,7 @@ export default class Nuclide extends Vue {
   }
 
   private mounted () {
-    this.threeML = new ThreeML(document.getElementById('n-canvas') as HTMLCanvasElement);
+    this.threeML = new MultiThree(document.getElementById('n-canvas') as HTMLCanvasElement);
     this.threeML.timeScale = 0.002;
     this.initScene();
   }
