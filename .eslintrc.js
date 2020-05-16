@@ -3,7 +3,7 @@ module.exports = {
   env: {
     node: true
   },
-  'extends': [
+  extends: [
     'plugin:vue/essential',
     '@vue/standard',
     '@vue/typescript'
@@ -11,7 +11,7 @@ module.exports = {
   rules: {
     'no-console': 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
-    'semi': ['error', 'always'],
+    semi: ['error', 'always'],
     'comma-dangle': ['error', 'only-multiline'],
     '@typescript-eslint/no-unused-vars': [2, { args: 'none' }]
   },
