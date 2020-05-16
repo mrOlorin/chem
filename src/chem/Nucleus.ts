@@ -1,4 +1,4 @@
-import ELEMENTS from '@/chem/elements';
+import ELEMENTS from '@/chem/literals/elements';
 import Nucleon from '@/chem/Nucleon';
 
 // нечёт-нечёт | нечёт | чёт-чёт

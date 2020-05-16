@@ -8,7 +8,7 @@
 
 import { Component, Vue } from 'vue-property-decorator';
 import Nucleus from '@/chem/Nucleus';
-import ISOTOPES from '@/chem/isotopes';
+import ISOTOPES from '@/chem/literals/isotopes';
 import ParticleBuilder from '@/chem/ParticleBuilder';
 
 @Component({
@@ -23,6 +23,7 @@ export default class NuclideList extends Vue {
   private async beforeMount () {
     this.buildNuclides();
   }
+
   private buildNuclides () {
     console.time('Нуклиды готовы');
     this.nuclides = [];

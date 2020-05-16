@@ -5,11 +5,11 @@ import Nucleus from '@/chem/Nucleus';
 import NucleusCached from '@/chem/NucleusCached';
 
 export default class ParticleBuilder {
-  static buildNucleon (quarks: Array<Quark>) {
+  private static buildNucleon (quarks: Array<Quark>) {
     return new Nucleon(quarks);
   }
 
-  static buildProton (): Nucleon {
+  private static buildProton (): Nucleon {
     return this.buildNucleon([
       new Quark(QUARKS.up),
       new Quark(QUARKS.up),
@@ -17,7 +17,7 @@ export default class ParticleBuilder {
     ]);
   }
 
-  static buildNeutron (): Nucleon {
+  private static buildNeutron (): Nucleon {
     return this.buildNucleon([
       new Quark(QUARKS.up),
       new Quark(QUARKS.down),
