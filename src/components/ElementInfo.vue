@@ -17,20 +17,24 @@ export default class ElementInfo extends Vue {
 </style>
 <template>
     <svg width="80" height="80" class="element-info">
-        <text y="10" x="2" font-size="0.6em">
+        <text x="2" y="10" font-size="0.6em">
             <title>Массовое число</title>
             {{atom.nucleus.A}}
         </text>
-        <text y="21" x="2" font-size="0.6em">
+        <text x="2" y="21" font-size="0.6em">
             <title>Атомное число</title>
             {{atom.nucleus.Z}}
         </text>
-        <text y="19" :x="10 + 3 * atom.nucleus.A.toString().length" font-size="1.2em">
+        <text :x="10 + 3 * atom.nucleus.A.toString().length" y="19" font-size="1.2em">
             {{atom.nucleus.name}}
         </text>
-        <text y="10" x="68" font-size="0.6em">
+        <text text-anchor="end" x="79" y="10" font-size="0.6em">
             <title>{{atom.electronConfiguration}}</title>
-            e
+            {{atom.electronConfigurationShort}}
+        </text>
+        <text text-anchor="end" x="79" y="21" font-size="0.6em">
+            <title>Масса {{Math.round((atom.mass + Number.EPSILON) * 10000) / 10000}}МэВ</title>
+            {{atom.mass.toPrecision(1)}}
         </text>
     </svg>
 </template>

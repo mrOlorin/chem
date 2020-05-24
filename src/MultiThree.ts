@@ -12,6 +12,9 @@ export default class MultiThree {
   private doRender: boolean = false;
 
   public constructor (canvas: HTMLCanvasElement) {
+    if (!canvas) {
+      throw new Error('Canvas required');
+    }
     this.canvas = canvas;
     this.canvas.style.position = 'absolute';
     this.canvas.style.top = '0';

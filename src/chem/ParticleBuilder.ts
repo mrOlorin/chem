@@ -2,15 +2,14 @@ import Quark from '@/chem/Quark';
 import QUARKS from '@/chem/literals/quarks';
 import Nucleon from '@/chem/Nucleon';
 import Nucleus from '@/chem/Nucleus';
-import NucleusCached from '@/chem/NucleusCached';
 import Atom from '@/chem/Atom';
 
 export default class ParticleBuilder {
-  private static buildNucleon (quarks: Array<Quark>) {
+  protected static buildNucleon (quarks: Array<Quark>) {
     return new Nucleon(quarks);
   }
 
-  private static buildProton (): Nucleon {
+  protected static buildProton (): Nucleon {
     return this.buildNucleon([
       new Quark(QUARKS.up),
       new Quark(QUARKS.up),
@@ -18,7 +17,7 @@ export default class ParticleBuilder {
     ]);
   }
 
-  private static buildNeutron (): Nucleon {
+  protected static buildNeutron (): Nucleon {
     return this.buildNucleon([
       new Quark(QUARKS.up),
       new Quark(QUARKS.down),
@@ -26,7 +25,7 @@ export default class ParticleBuilder {
     ]);
   }
 
-  static buildNucleus (protonsNumber: number, neutronsNumber: number): Nucleus {
+  public static buildNucleus (protonsNumber: number, neutronsNumber: number): Nucleus {
     const protons: Array<Nucleon> = [];
     const neutrons: Array<Nucleon> = [];
     for (let i = 0; i < protonsNumber; i++) {
@@ -35,10 +34,10 @@ export default class ParticleBuilder {
     for (let i = 0; i < neutronsNumber; i++) {
       neutrons.push(this.buildNeutron());
     }
-    return new NucleusCached(protons, neutrons);
+    return new Nucleus(protons, neutrons);
   }
 
-  static buildAtom (z: number, n: number = z): Atom {
+  public static buildAtom (z: number, n: number = z): Atom {
     const nucleus = this.buildNucleus(z, n);
     return new Atom(nucleus);
   }

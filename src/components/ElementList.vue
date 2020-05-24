@@ -1,21 +1,31 @@
 <script lang="ts">
 import * as THREE from 'three';
-import { Component, Prop, Vue } from 'vue-property-decorator';
+import { Component, Vue } from 'vue-property-decorator';
 import MultiThree from '@/MultiThree';
-import Atom from '@/chem/Atom';
 import ElementMesh from '@/chem/mesh/ElementMesh';
 import ElementInfo from '@/components/ElementInfo.vue';
+import { State, Action } from 'vuex-class';
+import Particles from '@/store/Particles';
 
 @Component({
-  components: { ElementInfo }
+  components: { ElementInfo },
 })
 export default class ElementList extends Vue {
-  @Prop(Array) private elements!: Array<Atom>;
+  @State(Particles.name)
+  public state!: Particles;
+
+  @Action
+  public buildAtoms!: () => void;
+
   private multiThree!: MultiThree;
 
-  private async mounted () {
+  private beforeMount () {
+    this.buildAtoms();
+  }
+
+  private mounted () {
     this.multiThree = new MultiThree(this.$refs.scene as HTMLCanvasElement);
-    this.initScenes(10);
+    this.initScenes(20);
   }
 
   private async beforeDestroy () {
@@ -23,9 +33,15 @@ export default class ElementList extends Vue {
   }
 
   private async initScenes (chunkSize: number): Promise<void> {
+    if (this.state.atoms.length === 0) {
+      this.$watch('state.atoms', () => {
+        this.initScenes(chunkSize);
+      });
+      return;
+    }
     let i = 0;
     const backgroundColor = new THREE.Color(1, 1, 1);
-    for (const atom of this.elements) {
+    for (const atom of this.state.atoms) {
       if (!atom) continue;
       const el: HTMLElement | null = document.getElementById(`element-${atom.nucleus.Z}`);
       if (!el) continue;
@@ -51,8 +67,10 @@ export default class ElementList extends Vue {
 <template>
     <div class="element-list">
         <canvas ref="scene"/>
-        <div class="element" v-for="(element, i) in elements" v-bind:key="i" >
-            <ElementInfo :atom="element" :id="`element-${element.nucleus.Z}`"/>
+        <div v-if="state.atoms && state.atoms.length > 0">
+            <div class="element" v-for="(element, i) in state.atoms" v-bind:key="i">
+                <ElementInfo :atom="element" :id="`element-${element.nucleus.Z}`"/>
+            </div>
         </div>
     </div>
 </template>

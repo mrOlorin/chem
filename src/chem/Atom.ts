@@ -4,7 +4,7 @@ import ELECTRON_ORBITALS from '@/chem/literals/electronOrbitals';
 export interface Electron {
   n: number;
   l: number;
-  ml: number;
+  m: number;
   ms: number;
 }
 
@@ -18,6 +18,15 @@ export default class Atom {
     for (let i = 0; i < this.nucleus.Z; i++) {
       this.electrons.push(electrons.next().value);
     }
+  }
+
+  public get mass () : number {
+    return this.nucleus.mass + this.electrons.length * 0.51099895; // МэВ
+  }
+
+  public get outerLevel () {
+    const reducer = (maxN: number, electron: Electron) => Math.max(electron.n, maxN);
+    return this.electrons.reduce(reducer, this.electrons[0].n);
   }
 
   public get electronConfiguration (): string {
@@ -36,6 +45,11 @@ export default class Atom {
     ).join('');
   }
 
+  public get electronConfigurationShort (): string {
+    const config = this.electronConfiguration;
+    return config.substring(config.indexOf('' + this.outerLevel));
+  }
+
   public static * electronGenerator (): IterableIterator<Electron> {
     // TODO: Провал электрона мб?
     let spinUp = 1;
@@ -45,7 +59,7 @@ export default class Atom {
       for (let l = x - (2 - isEven); l >= 0; l -= spinUp) {
         spinUp = 1 - spinUp;
         for (let ml = -l; ml <= l; ml++) {
-          yield { n, l, ml, ms };
+          yield { n, l, m: ml, ms };
         }
         ms = -ms;
         n += spinUp;
@@ -55,7 +69,7 @@ export default class Atom {
 
   public static testElectronGenerator () {
     const compare = (e1: Electron, e2: typeof ELECTRON_ORBITALS[0]) => {
-      return e1.n === e2[0] && e1.l === e2[1] && e1.ml === e2[2] && e1.ms === e2[3];
+      return e1.n === e2[0] && e1.l === e2[1] && e1.m === e2[2] && e1.ms === e2[3];
     };
     const electrons = Atom.electronGenerator();
     const n = 118;

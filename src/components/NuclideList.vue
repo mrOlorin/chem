@@ -1,21 +1,34 @@
 <script lang="ts">
 import * as THREE from 'three';
-import { Component, Prop, Vue } from 'vue-property-decorator';
-import Nucleus from '@/chem/Nucleus';
+import { Component, Vue } from 'vue-property-decorator';
 import NucleusMesh from '@/chem/mesh/NucleusMesh';
 import MultiThree from '@/MultiThree';
 import NuclideInfo from '@/components/NuclideInfo.vue';
+import { Action, State } from 'vuex-class';
+import Particles from '@/store/Particles';
 
 @Component({
   components: { NuclideInfo }
 })
 export default class NuclideList extends Vue {
-  @Prop(Array) private nuclides!: Array<Array<Nucleus>>;
-  @Prop(Number) private nuclidesCount!: number;
+  private nuclidesCount: number = 3000;
+
+  @State(Particles.name)
+  public state!: Particles;
+
+  @Action
+  public buildNuclides!: () => void;
+
   private multiThree!: MultiThree;
 
+  private beforeMount () {
+    this.buildNuclides();
+  }
+
   private async mounted () {
-    this.multiThree = new MultiThree(this.$refs.scene as HTMLCanvasElement);
+    if (!this.multiThree) {
+      this.multiThree = new MultiThree(this.$refs.scene as HTMLCanvasElement);
+    }
     this.initScenes(10);
     this.addEventListeners();
   }
@@ -26,10 +39,16 @@ export default class NuclideList extends Vue {
   }
 
   private async initScenes (chunkSize: number): Promise<void> {
+    if (this.state.nuclides.length === 0) {
+      this.$watch('state.nuclides', () => {
+        this.initScenes(chunkSize);
+      });
+      return;
+    }
     let i = 0;
     const progressBar = this.$refs.progress as HTMLProgressElement;
     const backgroundColor = new THREE.Color(1, 1, 1);
-    for (const isotopes of this.nuclides) {
+    for (const isotopes of this.state.nuclides) {
       if (!isotopes) continue;
       for (const nucleus of isotopes) {
         if (!nucleus) continue;
@@ -80,9 +99,9 @@ export default class NuclideList extends Vue {
     <div class="nuclide-list">
         <canvas ref="scene"/>
         <progress title="Инициализация сцен" ref="progress" value="0" :max="nuclidesCount"/>
-        <table id="table">
-            <tr class="nuclide-row" v-for="(isotopes, i) in nuclides" v-bind:key="i">
-                <td v-for="(nuclide, j) in isotopes" v-bind:key="j" >
+        <table id="table" v-if="state.nuclides.length > 0">
+            <tr class="nuclide-row" v-for="(isotopes, i) in state.nuclides" v-bind:key="i">
+                <td v-for="(nuclide, j) in isotopes" v-bind:key="j">
                     <NuclideInfo v-if="nuclide" :nuclide="nuclide" :id="`isotope-${i}-${j}`"/>
                 </td>
             </tr>

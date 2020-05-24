@@ -7,37 +7,33 @@ import { r0 } from '@/chem/literals/constants';
 export type Parity = -1 | 0 | 1;
 
 export default class Nucleus {
-  public readonly protons: Array<Nucleon>;
-  public readonly neutrons: Array<Nucleon>;
   public readonly nucleons: Array<Nucleon>;
 
   constructor (protons: Array<Nucleon>, neutrons: Array<Nucleon>) {
-    this.protons = protons;
-    this.neutrons = neutrons;
-    this.nucleons = this.protons.concat(this.neutrons);
+    this.nucleons = protons.concat(neutrons);
   }
 
   public get name (): string {
     return ELEMENTS[this.Z - 1];
   }
 
-  // Число протонов
+  // Количество протонов / Атомное число
   public get Z (): number {
-    return this.protons.length;
+    return this.nucleons.reduce((z: number, nucleon: Nucleon) => z + nucleon.electricCharge, 0);
   }
 
-  // Число нейтронов (изотопическое число)
+  // Количество нейтронов (изотопическое число)
   public get N (): number {
-    return this.neutrons.length;
+    return this.nucleons.reduce((z: number, nucleon: Nucleon) => z + 1 - nucleon.electricCharge, 0);
   }
 
-  // Массовое число (A = Z + N)
+  // Количество нуклонов / Массовое число (A = Z + N)
   public get A (): number {
     return this.nucleons.length;
   }
 
   public get electricCharge (): number {
-    return this.nucleons.map(n => n.electricCharge).reduce((charge, prev) => charge + prev);
+    return this.nucleons.reduce((charge: number, nucleon: Nucleon) => charge + nucleon.electricCharge, 0);
   }
 
   // https://en.wikipedia.org/wiki/Woods–Saxon_potential
@@ -58,11 +54,11 @@ export default class Nucleus {
   }
 
   public get spin (): number {
-    return this.nucleons.map(n => n.spin).reduce((p, prev) => p + prev);
+    return this.nucleons.reduce((spin: number, nucleon: Nucleon) => spin + nucleon.spin, 0) % 1.5;
   }
 
   public get mass (): number {
-    return this.nucleons.map(n => n.mass).reduce((p, prev) => p + prev);
+    return this.nucleons.reduce((mass: number, nucleon: Nucleon) => mass + nucleon.mass, 0);
   }
 
   public get parity (): Parity {

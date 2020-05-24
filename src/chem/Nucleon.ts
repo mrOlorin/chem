@@ -11,27 +11,15 @@ export default class Nucleon {
   }
 
   public get electricCharge (): number {
-    let electricCharge = 0;
-    for (const quark of this.quarks) {
-      electricCharge += quark.electricCharge;
-    }
-    return electricCharge;
+    return this.quarks.reduce((charge: number, quark: Quark) => charge + quark.electricCharge, 0);
   }
 
   public get spin (): number {
-    let spin = 0;
-    for (const quark of this.quarks) {
-      spin += quark.isospin;
-    }
-    return spin;
+    return this.quarks.reduce((isospin: number, quark: Quark) => isospin + quark.isospin, 0);
   }
 
   public get mass (): number {
-    let mass = 0;
-    for (const quark of this.quarks) {
-      mass += quark.mass;
-    }
-    return mass;
+    return this.quarks.reduce((mass: number, quark: Quark) => mass + quark.mass, 0);
   }
 
   // Барионное число

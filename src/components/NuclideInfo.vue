@@ -16,16 +16,20 @@ export default class NuclideInfo extends Vue {
 </style>
 <template>
     <svg class="nuclide">
-        <text y="10" x="2" font-size="0.6em">
+        <text x="2" y="10" font-size="0.6em">
             <title>Массовое число</title>
             {{nuclide.A}}
         </text>
-        <text y="21" x="2" font-size="0.6em">
+        <text x="2" y="21" font-size="0.6em">
             <title>Атомное число</title>
             {{nuclide.Z}}
         </text>
-        <text y="19" :x="10 + 3 * nuclide.A.toString().length" font-size="1.2em">
+        <text :x="10 + 3 * nuclide.A.toString().length" y="19" font-size="1.2em">
             {{nuclide.name}}
+        </text>
+        <text text-anchor="end" x="79" y="10" font-size="0.6em">
+            <title>Энергия связи {{nuclide.bindingEnergy}} МэВ</title>
+            {{nuclide.bindingEnergy.toPrecision(4)}}
         </text>
     </svg>
 </template>
