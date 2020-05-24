@@ -1,11 +1,4 @@
-<template>
-    <div class="nuclide-list">
-        <NuclideList :nuclides="nuclides" :nuclidesCount="nuclidesCount"/>
-    </div>
-</template>
-
 <script lang="ts">
-
 import { Component, Vue } from 'vue-property-decorator';
 import Nucleus from '@/chem/Nucleus';
 import ISOTOPES from '@/chem/literals/isotopes';
@@ -25,7 +18,6 @@ export default class NuclideList extends Vue {
   }
 
   private buildNuclides () {
-    console.time('Нуклиды готовы');
     this.nuclides = [];
     for (let Z = 1; Z <= 118; Z++) {
       this.nuclides[Z] = [];
@@ -34,8 +26,11 @@ export default class NuclideList extends Vue {
         this.nuclidesCount++;
       }
     }
-    console.timeEnd('Нуклиды готовы');
   }
 };
-
 </script>
+<template>
+    <div class="nuclide-list">
+        <NuclideList :nuclides="nuclides" :nuclidesCount="nuclidesCount"/>
+    </div>
+</template>

@@ -1,3 +1,8 @@
+<style>
+    .about {
+        text-align: left;
+    }
+</style>
 <template functional>
     <div class="about">
         <h2>Disclaimer</h2>
@@ -12,25 +17,26 @@
         </ul>
         <h2>Технические подробности</h2>
         <h3>Данные</h3>
+        <h4>Нуклиды</h4>
         <p>
             <a href="//ru.wikipedia.org/wiki/Нуклид"
-               target="_blank">Нуклиды</a> строятся из
+               target="_blank">Ядра</a> строятся из
             <a href="//ru.wikipedia.org/wiki/Нуклон"
                target="_blank">нуклонов</a>, нуклоны — из
             <a href="//ru.wikipedia.org/wiki/Кварк"
-               target="_blank">кварков</a>.
+               target="_blank">кварков</a>.<br>
             Исходные данные — мин. и макс. количества нейтронов для 1..118 протонов, взяты из
             <a href="//ru.wikipedia.org/wiki/Таблица_нуклидов"
                target="_blank">таблицы нуклидов</a> в википедии.
         </p>
         <p>
-            <a title="Спин" href="//ru.wikipedia.org/wiki/Спин" target="_blank">Спин</a> вычисляется как сумма спинов
-            нуклонов, спин нуклона — как сумма
+            <a title="Спин" href="//ru.wikipedia.org/wiki/Спин" target="_blank">Спин</a> — сумма спинов
+            нуклонов, спин нуклона — сумма
             <a title="Изотопический спин" href="//ru.wikipedia.org/wiki/Изотопический_спин"
                target="_blank">изоспинов</a> кварков.
         </p>
         <p>
-            Магнитный момент считается как сумма магнитных моментов нуклонов, значения из википедии:<br>
+            Магнитный момент — сумма магнитных моментов нуклонов, значения из википедии:<br>
             для <a href="//ru.wikipedia.org/wiki/Протон" target="_blank">протона</a> <a
                 href="//ru.wikipedia.org/wiki/Ядерный_магнетон" target="_blank" title="Мю эн">μN</a> = 2.79284734463,
             для <a href="//ru.wikipedia.org/wiki/Нейтрон" target="_blank">нейтрона</a> μN = -1.91304273
@@ -43,20 +49,31 @@
         </p>
         <p>Энергия связи по <a href="https://ru.wikipedia.org/wiki/Капельная_модель_ядра#Вывод_формулы_Вайцзеккера"
                                target="_blank">формуле Вайцзеккера</a></p>
+        <h4>Элементы</h4>
+        <p>
+            Элемент состоит из ядра и <a href="//ru.wikipedia.org/wiki/Электрон"
+                                         target="_blank">электронов</a>.
+        </p>
+        <p>
+            Электрон определяется четырьмя квантовыми числами:<br>
+            <a href="//ru.wikipedia.org/wiki/Главное_квантовое_число"
+               target="_blank">главным</a> (n),
+            <a href="//ru.wikipedia.org/wiki/Орбитальное_квантовое_число"
+               target="_blank">орбитальным</a> (l),
+            <a href="//ru.wikipedia.org/wiki/Магнитное_квантовое_число"
+               target="_blank">магнитным</a> (m) и
+            <a href="//ru.wikipedia.org/wiki/Спин"
+               target="_blank">спиновым</a> (ms).<br>
+            Эти числа вычисляются уберфункцией. Для некотороых элементов правильно, для
+            <a href="//ru.wikipedia.org/wiki/Правило_Клечковского#Исключения_из_правила_Клечковского"
+               target="_blank">некотороых</a> — нет.
+        </p>
         <h3>Визуал</h3>
         <p>
             В каждой ячейке создаётся <a href="//threejs.org/" target="_blank">three.js</a> сцена
-            с одним объектом <a href="//threejs.org/docs/index.html#api/en/objects/Points">Points</a>.<br>
+            с одним объектом (ядро — <a href="//threejs.org/docs/index.html#api/en/objects/Points">Points</a>).<br>
             Протоны красненькие, потому что положительные, нейтроны — зелёненькие, потому что нейтральные.<br>
-            Распределение точек немного завязано на энергию связи и магнитный момент, но не имеет отношения к реальности.
-        </p>
-        <p>
-            1 canvas, 1 камера, 3345 сцен, 466782 точки.
+            Распределение и анимация "нуклонов" не имеют отношения к реальности.
         </p>
     </div>
 </template>
-<style>
-    .about {
-        text-align: left;
-    }
-</style>

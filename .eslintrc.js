@@ -6,7 +6,8 @@ module.exports = {
   extends: [
     'plugin:vue/essential',
     '@vue/standard',
-    '@vue/typescript'
+    '@vue/typescript',
+    'plugin:sonarjs/recommended'
   ],
   rules: {
     'no-console': 'off',

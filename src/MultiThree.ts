@@ -2,14 +2,14 @@ import * as THREE from 'three';
 import Stats from 'three/examples/jsm/libs/stats.module';
 
 export default class MultiThree {
+  public readonly camera: THREE.Camera;
+  public timeScale: number = 0.005;
   private readonly canvas: HTMLCanvasElement;
   private readonly renderer: THREE.WebGLRenderer;
-  private readonly camera: THREE.Camera;
   private readonly stats: Stats;
   private readonly scenes: Array<THREE.Scene> = [];
   private readonly visibleScenes: Array<THREE.Scene> = [];
   private doRender: boolean = false;
-  public timeScale: number = 0.01;
 
   public constructor (canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -21,20 +21,19 @@ export default class MultiThree {
     this.canvas.style.zIndex = '-1';
     const contextAttributes: WebGLContextAttributes = {
       alpha: true,
-      antialias: false
+      antialias: true
     };
     const context = this.canvas.getContext('webgl2', contextAttributes) as WebGLRenderingContext;
-    const renrederParameters: THREE.WebGLRendererParameters = {
+    const rendererParameters: THREE.WebGLRendererParameters = {
       canvas: this.canvas,
       context,
-      antialias: false
+      antialias: true
     };
-    this.renderer = new THREE.WebGLRenderer(renrederParameters);
+    this.renderer = new THREE.WebGLRenderer(rendererParameters);
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setScissorTest(true);
-    const cynicallyHardcodedAspectRatio = 1;
-    this.camera = new THREE.PerspectiveCamera(90, cynicallyHardcodedAspectRatio, 1, 20);
-    this.camera.position.z = 2.5;
+    this.camera = new THREE.PerspectiveCamera(90, 1, 0.1, 100);
+    this.camera.position.z = 1;
     this.stats = Stats();
     (this.canvas.parentElement as HTMLElement).appendChild(this.stats.domElement);
     this.startRender();
@@ -54,25 +53,19 @@ export default class MultiThree {
     this.addEventListeners();
     requestAnimationFrame(this.adjustCanvas);
 
-    let x: number;
     let y: number;
-    let width: number;
-    let height: number;
+    let deltaTime: number;
     let previousTime = 0;
-    let deltaTime = 0;
     let rect: ClientRect;
     const animate = (time: number): void => {
       time *= this.timeScale;
       deltaTime = time - previousTime;
       for (let i = 0, len = this.visibleScenes.length; i < len; i++) {
-        rect = this.visibleScenes[i].userData.element.getBoundingClientRect();
-        x = rect.left;
-        y = this.renderer.domElement.clientHeight - rect.bottom;
-        width = rect.width;
-        height = rect.height;
-        this.renderer.setViewport(x, y, width, height);
-        this.renderer.setScissor(x, y, width, height);
         this.visibleScenes[i].userData.tick(time, deltaTime);
+        rect = this.visibleScenes[i].userData.element.getBoundingClientRect();
+        y = this.renderer.domElement.clientHeight - rect.bottom;
+        this.renderer.setViewport(rect.left, y, rect.width, rect.height);
+        this.renderer.setScissor(rect.left, y, rect.width, rect.height);
         this.renderer.render(this.visibleScenes[i], this.camera);
       }
       previousTime = time;

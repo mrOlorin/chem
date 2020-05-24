@@ -1,7 +1,8 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/">Таблица</router-link> |
+      <router-link to="/">Элементы</router-link> |
+      <router-link to="/nuclides">Нуклиды</router-link> |
       <router-link to="/about">О</router-link>
     </div>
     <router-view/>

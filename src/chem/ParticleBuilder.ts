@@ -1,8 +1,9 @@
 import Quark from '@/chem/Quark';
-import { QUARKS } from '@/chem/literals/quarks';
+import QUARKS from '@/chem/literals/quarks';
 import Nucleon from '@/chem/Nucleon';
 import Nucleus from '@/chem/Nucleus';
 import NucleusCached from '@/chem/NucleusCached';
+import Atom from '@/chem/Atom';
 
 export default class ParticleBuilder {
   private static buildNucleon (quarks: Array<Quark>) {
@@ -35,5 +36,10 @@ export default class ParticleBuilder {
       neutrons.push(this.buildNeutron());
     }
     return new NucleusCached(protons, neutrons);
+  }
+
+  static buildAtom (z: number, n: number = z): Atom {
+    const nucleus = this.buildNucleus(z, n);
+    return new Atom(nucleus);
   }
 }

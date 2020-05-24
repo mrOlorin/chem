@@ -1,5 +1,21 @@
+<script lang="ts">
+import { Component, Prop, Vue } from 'vue-property-decorator';
+import Nucleus from '@/chem/Nucleus';
+
+@Component
+export default class NuclideInfo extends Vue {
+  @Prop(Nucleus) private nuclide!: Nucleus;
+}
+</script>
+<style>
+    .nuclide {
+        height: 80px;
+        width: 80px;
+        border: 1px solid #2c3e50;
+    }
+</style>
 <template>
-    <svg width="80" height="80" class="element">
+    <svg class="nuclide">
         <text y="10" x="2" font-size="0.6em">
             <title>Массовое число</title>
             {{nuclide.A}}
@@ -11,26 +27,5 @@
         <text y="19" :x="10 + 3 * nuclide.A.toString().length" font-size="1.2em">
             {{nuclide.name}}
         </text>
-        <text y="10" x="60" font-size="0.6em">
-            <title>Масса</title>
-            {{nuclide.mass}}
-        </text>
     </svg>
 </template>
-<script lang="ts">
-import { Component, Prop, Vue } from 'vue-property-decorator';
-import Nucleus from '@/chem/Nucleus';
-
-@Component
-export default class NuclideInfo extends Vue {
-  @Prop(Nucleus) private nuclide!: Nucleus;
-}
-</script>
-<style>
-    .element {
-        height: 80px;
-        width: 80px;
-        border: 1px solid #2c3e50;
-        padding: 2px;
-    }
-</style>

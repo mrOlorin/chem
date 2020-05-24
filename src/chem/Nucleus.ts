@@ -1,5 +1,7 @@
 import ELEMENTS from '@/chem/literals/elements';
+import magneticMoment from '@/chem/literals/magneticMoment';
 import Nucleon from '@/chem/Nucleon';
+import { r0 } from '@/chem/literals/constants';
 
 // нечёт-нечёт | нечёт | чёт-чёт
 export type Parity = -1 | 0 | 1;
@@ -29,7 +31,7 @@ export default class Nucleus {
     return this.neutrons.length;
   }
 
-  // Массовое число
+  // Массовое число (A = Z + N)
   public get A (): number {
     return this.nucleons.length;
   }
@@ -38,9 +40,15 @@ export default class Nucleus {
     return this.nucleons.map(n => n.electricCharge).reduce((charge, prev) => charge + prev);
   }
 
-  // Радиус в метрах
+  // https://en.wikipedia.org/wiki/Woods–Saxon_potential
+  public woodSaxonPotential (distance: number): number {
+    const V0 = 50; // MeV
+    const surfaceThickness = 0.5;
+    return -V0 / (1 + Math.exp((distance - this.R) / surfaceThickness));
+  }
+
+  // https://ru.wikipedia.org/wiki/Атомное_ядро#Радиус
   public get R (): number {
-    const r0 = 1.23e-15;
     return r0 * this.A ** (1 / 3);
   }
 
@@ -88,10 +96,6 @@ export default class Nucleus {
 
   // В ядерных магнетонах
   public get magneticMoment (): number {
-    const magneticMoment = {
-      proton: 2.79284734463,
-      neutron: -1.91304273
-    };
     return this.Z * magneticMoment.proton + this.N * magneticMoment.neutron;
   }
 }

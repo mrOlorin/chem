@@ -1,4 +1,4 @@
-export const QUARKS: {
+const QUARKS: {
   [key: string]: {
     electricCharge: number,
     spin: number,
@@ -45,3 +45,4 @@ export const QUARKS: {
     mass: 174340,
   }
 };
+export default QUARKS;
