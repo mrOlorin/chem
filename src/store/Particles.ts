@@ -4,6 +4,7 @@ import ParticleBuilderCached from '@/chem/ParticleBuilderCached';
 import ISOTOPES from '@/chem/literals/isotopes';
 import Nucleus from '@/chem/Nucleus';
 
+// TODO: Web Workers
 @Module
 export default class Particles extends VuexModule {
   public atoms: Array<Atom> = [];
