@@ -1,3 +1,3 @@
 # chem
 
-[Demo](https://mrolorin.github.io/chem/dist) (Hardware acceleration is highly recommend).
+[Demo](https://chem.onrender.com) (Hardware acceleration is highly recommend).
