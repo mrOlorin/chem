@@ -8,7 +8,7 @@ import { State, Action } from 'vuex-class';
 import Particles from '@/store/Particles';
 
 @Component({
-  components: { ElementInfo },
+  components: { ElementInfo }
 })
 export default class ElementList extends Vue {
   @State('Particles')

@@ -8,7 +8,8 @@ import { Action, State } from 'vuex-class';
 import Particles from '@/store/Particles';
 
 @Component({
-  components: { NuclideInfo }})
+  components: { NuclideInfo }
+})
 export default class NuclideList extends Vue {
   private nuclidesCount: number = 3000;
 
@@ -90,6 +91,7 @@ export default class NuclideList extends Vue {
         right: 0;
         top: 0;
     }
+
     .nuclide-row {
         border-spacing: revert;
     }
