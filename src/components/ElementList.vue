@@ -11,7 +11,7 @@ import Particles from '@/store/Particles';
   components: { ElementInfo },
 })
 export default class ElementList extends Vue {
-  @State(Particles.name)
+  @State('Particles')
   public state!: Particles;
 
   @Action

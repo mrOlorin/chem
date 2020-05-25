@@ -8,12 +8,11 @@ import { Action, State } from 'vuex-class';
 import Particles from '@/store/Particles';
 
 @Component({
-  components: { NuclideInfo }
-})
+  components: { NuclideInfo }})
 export default class NuclideList extends Vue {
   private nuclidesCount: number = 3000;
 
-  @State(Particles.name)
+  @State('Particles')
   public state!: Particles;
 
   @Action
