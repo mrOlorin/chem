@@ -1,14 +1,26 @@
 import * as THREE from 'three';
 import Stats from 'three/examples/jsm/libs/stats.module';
 
+export interface MultiThreeScene {
+  element: Element;
+  scene: THREE.Scene;
+  tick?: (time: number, deltaTime: number) => void;
+}
+
 export default class MultiThree {
+  private static _instance: MultiThree;
+  public static get instance (): MultiThree {
+    return this._instance;
+  }
+
+  public timeScale: number = 0.1;
   public readonly camera: THREE.Camera;
-  public timeScale: number = 0.005;
-  private readonly canvas: HTMLCanvasElement;
-  private readonly renderer: THREE.WebGLRenderer;
-  private readonly stats: Stats;
-  private readonly scenes: Array<THREE.Scene> = [];
-  private readonly visibleScenes: Array<THREE.Scene> = [];
+  public scenes: Array<MultiThreeScene> = [];
+  private emptyScenes: Array<number> = [];
+  public readonly visibleScenes: Array<MultiThreeScene> = [];
+  public readonly canvas: HTMLCanvasElement;
+  public readonly renderer: THREE.WebGLRenderer;
+  public readonly stats: Stats;
   private doRender: boolean = false;
 
   public constructor (canvas: HTMLCanvasElement) {
@@ -22,14 +34,9 @@ export default class MultiThree {
     this.canvas.style.width = '100%';
     this.canvas.style.height = '100%';
     this.canvas.style.zIndex = '-1';
-    const contextAttributes: WebGLContextAttributes = {
-      alpha: true,
-      antialias: true
-    };
-    const context = this.canvas.getContext('webgl2', contextAttributes) as WebGLRenderingContext;
     const rendererParameters: THREE.WebGLRendererParameters = {
       canvas: this.canvas,
-      context,
+      context: this.canvas.getContext('webgl2', { alpha: true, antialias: true }) as WebGLRenderingContext,
       antialias: true
     };
     this.renderer = new THREE.WebGLRenderer(rendererParameters);
@@ -40,36 +47,53 @@ export default class MultiThree {
     this.stats = Stats();
     (this.canvas.parentElement as HTMLElement).appendChild(this.stats.domElement);
     this.startRender();
+    MultiThree._instance = this;
   }
 
-  public addScene (scene: THREE.Scene, element: HTMLElement, tick: (time: number, deltaTime: number) => void = () => undefined) {
-    scene.userData.element = element;
-    scene.userData.tick = tick;
-    this.scenes.push(scene);
-    if (this.isVisible(scene.userData.element)) {
-      this.visibleScenes.push(scene);
+  public addScene (multiThreeScene: MultiThreeScene) {
+    const index = this.emptyScenes.shift() || this.scenes.length;
+    this.scenes[index] = multiThreeScene;
+    if (this.isVisible(this.scenes[index].element)) {
+      this.visibleScenes.push(this.scenes[index]);
     }
+  }
+
+  public removeScene (multiThreeScene: MultiThreeScene) {
+    for (let i = 0, len = this.scenes.length; i < len; i++) {
+      if (this.scenes[i] === multiThreeScene) {
+        delete this.scenes[i];
+        this.emptyScenes.push(i);
+      }
+    }
+  }
+
+  public stopRender () {
+    this.doRender = false;
+    this.removeEventListeners();
   }
 
   public startRender () {
     this.doRender = true;
     this.addEventListeners();
-    requestAnimationFrame(this.adjustCanvas);
+    this.adjustCanvas();
 
     let y: number;
     let deltaTime: number;
     let previousTime = 0;
     let rect: ClientRect;
+    let rendererHeight: number;
     const animate = (time: number): void => {
       time *= this.timeScale;
       deltaTime = time - previousTime;
+      rendererHeight = this.renderer.domElement.clientHeight;
       for (let i = 0, len = this.visibleScenes.length; i < len; i++) {
-        this.visibleScenes[i].userData.tick(time, deltaTime);
-        rect = this.visibleScenes[i].userData.element.getBoundingClientRect();
-        y = this.renderer.domElement.clientHeight - rect.bottom;
+        // @ts-ignore
+        this.visibleScenes[i].tick && this.visibleScenes[i].tick(time, deltaTime);
+        rect = this.visibleScenes[i].element.getBoundingClientRect();
+        y = rendererHeight - rect.bottom;
         this.renderer.setViewport(rect.left, y, rect.width, rect.height);
         this.renderer.setScissor(rect.left, y, rect.width, rect.height);
-        this.renderer.render(this.visibleScenes[i], this.camera);
+        this.renderer.render(this.visibleScenes[i].scene, this.camera);
       }
       previousTime = time;
       this.stats.update();
@@ -78,11 +102,6 @@ export default class MultiThree {
       }
     };
     animate(0);
-  }
-
-  public stopRender () {
-    this.doRender = false;
-    this.removeEventListeners();
   }
 
   private addEventListeners () {
@@ -102,13 +121,13 @@ export default class MultiThree {
     }
     this.visibleScenes.length = 0;
     for (const scene of this.scenes) {
-      if (this.isVisible(scene.userData.element)) {
+      if (scene && this.isVisible(scene.element)) {
         this.visibleScenes.push(scene);
       }
     }
   }
 
-  private isVisible (element: HTMLElement): boolean {
+  private isVisible (element: Element): boolean {
     const rect = element.getBoundingClientRect();
     return !(
       rect.bottom < 0 || rect.top > this.renderer.domElement.clientHeight ||

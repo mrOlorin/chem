@@ -1,5 +1,21 @@
+<script lang="ts">
+import { Component, Vue } from 'vue-property-decorator';
+import MultiThree from '@/MultiThree';
+
+@Component
+export default class App extends Vue {
+  public async mounted () {
+    (() => new MultiThree(this.$refs.scene as HTMLCanvasElement))();
+  }
+
+  public async beforeDestroy () {
+    MultiThree.instance.stopRender();
+  }
+}
+</script>
 <template>
   <div id="app">
+    <canvas ref="scene"/>
     <div id="nav">
       <router-link to="/">Элементы</router-link> |
       <router-link to="/nuclides">Нуклиды</router-link> |

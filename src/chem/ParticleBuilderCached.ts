@@ -1,6 +1,5 @@
 import Nucleus from '@/chem/Nucleus';
 import NucleusCached from '@/chem/NucleusCached';
-import Atom from '@/chem/Atom';
 import ParticleBuilder from '@/chem/ParticleBuilder';
 import Nucleon from '@/chem/Nucleon';
 
@@ -26,10 +25,5 @@ export default class ParticleBuilderCached extends ParticleBuilder {
       this.protons.slice(0, protonsNumber),
       this.neutrons.slice(0, neutronsNumber)
     );
-  }
-
-  static buildAtom (z: number, n: number = z): Atom {
-    const nucleus = this.buildNucleus(z, n);
-    return new Atom(nucleus);
   }
 }

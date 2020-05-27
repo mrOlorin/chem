@@ -3,9 +3,9 @@ import { NucleonDistribution } from './NucleonDistribution';
 import * as THREE from 'three';
 import { GeometryUtils } from 'three/examples/jsm/utils/GeometryUtils';
 
-const hilbertPoints = GeometryUtils.hilbert3D(new THREE.Vector3(0, 0, 0), 1, 2);
+const hilbertPoints = GeometryUtils.hilbert3D(new THREE.Vector3(0.2, -0.2, 0), 1, 2);
 
-export default (isotope: Nucleus, scale: number): NucleonDistribution => {
+export default (isotope: Nucleus): NucleonDistribution => {
   const positions = new Float32Array(isotope.A * 3);
   const attributes = new Float32Array(isotope.A * 3);
 

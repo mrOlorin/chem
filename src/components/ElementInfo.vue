@@ -1,10 +1,38 @@
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator';
 import Atom from '@/chem/Atom';
+import MultiThree, { MultiThreeScene } from '@/MultiThree';
+import * as THREE from 'three';
+import ElementMesh from '@/chem/mesh/ElementMesh';
 
 @Component
 export default class ElementInfo extends Vue {
   @Prop(Atom) private atom!: Atom;
+  private multiThreeScene!: MultiThreeScene;
+
+  private static q = false;
+
+  public async mounted () {
+    if (!ElementInfo.q) {
+      ElementInfo.q = true;
+      console.log('mounted');
+    }
+    this.multiThreeScene = this.buildScene(this.atom);
+    MultiThree.instance.addScene(this.multiThreeScene);
+  }
+
+  public async beforeDestroy () {
+    MultiThree.instance.removeScene(this.multiThreeScene);
+  }
+
+  private buildScene (atom: Atom): MultiThreeScene {
+    const mesh = new ElementMesh(atom);
+    mesh.position.y -= 0.2;
+    mesh.position.z -= 0.006 * atom.nucleus.Z;
+    const scene = new THREE.Scene();
+    scene.add(mesh);
+    return { element: this.$el, scene, tick: mesh.tick };
+  }
 }
 </script>
 <style>

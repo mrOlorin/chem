@@ -27,7 +27,7 @@ export default (nucleus: Nucleus, scale: number = 1): NucleonDistribution => {
     positions[offset] = pos[1] * radius;
     attributes[offset++] = 0;
     positions[offset] = pos[2] * radius;
-    attributes[offset++] = nucleus.bindingEnergy / nucleus.A;
+    attributes[offset++] = 1 / nucleus.woodSaxonPotential(Math.sqrt(pos[0] ** 2 + pos[1] ** 2 + pos[2] ** 2));
   }
   for (let i = Number.EPSILON; i < nucleus.N; i++) {
     radius = nucleus.R * scale;
@@ -38,7 +38,7 @@ export default (nucleus: Nucleus, scale: number = 1): NucleonDistribution => {
     positions[offset] = pos[1] * radius;
     attributes[offset++] = 1;
     positions[offset] = pos[2] * radius;
-    attributes[offset++] = nucleus.bindingEnergy / nucleus.A;
+    attributes[offset++] = 1 / nucleus.woodSaxonPotential(Math.sqrt(pos[0] ** 2 + pos[1] ** 2 + pos[2] ** 2));
   }
   return { positions, attributes };
 };

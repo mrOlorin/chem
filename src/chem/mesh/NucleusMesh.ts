@@ -41,7 +41,7 @@ export default class NucleusMesh extends THREE.Points {
         pointSize: { value: 12 }
       },
       vertexShader: `
-        #define PI 3.141592653589793
+        #define PI 3.1415926
         in vec3 attributes;
         varying vec4 vPosition;
         varying vec3 vAttribute;
@@ -52,8 +52,8 @@ export default class NucleusMesh extends THREE.Points {
         out mat3 camera;
 
         vec3 getPosition(vec3 p) {
-          // p.x += .01 * sin(.9 * uTime + attributes.x + p.x + p.y + p.z);
-          // p.y += .01 * cos(.7 * uTime + attributes.y + p.x + p.y + p.z);
+          p.x += .01 * sin(.9 * uTime + attributes.x + p.x + p.y + p.z);
+          p.y += .01 * cos(.7 * uTime + attributes.y + p.x + p.y + p.z);
           return p;
         }
 
@@ -64,17 +64,17 @@ export default class NucleusMesh extends THREE.Points {
           vec3 right = normalize(cross(vec3(0., 1., 0.), forward));
           vec3 up = normalize(cross(forward, right));
           camera = mat3(right, up, forward);
-          vec3 p = getPosition(position);
+          vec3 p = position; //getPosition(position);
           gl_PointSize = pointSize;
           gl_Position = projectionMatrix * modelViewMatrix * vec4( p, 1.0 );
           vPosition = gl_Position;
-          lightPos = p - vec3(5. * sin(uTime * .4), 5. * cos(uTime * .3), -5.);
-          a = vec3(uTime * .227, uTime * .337, uTime * .401) + vPosition.xyz * 1.3;
+          lightPos = p - vec3(5., 5., -5.);
+          a = vAttribute[2] * vec3(uTime * .227, uTime * .337, uTime * .401);
         }
     `,
       fragmentShader: `
         #define PI 3.141592653589793
-        #define MAX_STEPS 32
+        #define MAX_STEPS 16
         #define PLANK_LENGTH .01
         #define FOG_DIST 11.
         #define MAX_DIST FOG_DIST
@@ -114,7 +114,7 @@ export default class NucleusMesh extends THREE.Points {
         }
         Material getMaterial(vec3 p) {
           Material m;
-          m.color = vec3(vAttribute.x, vAttribute.y, 0.);
+          m.color = vec3(vAttribute.x * .923, vAttribute.y * .927, 0.);
           m.diffuse = .4;
           m.specular = .4;
           m.ambient = .3;
@@ -177,7 +177,7 @@ export default class NucleusMesh extends THREE.Points {
           vec3 lightDir = normalize(lightPos - hitObject.point);
           float diffuse = max(0., mat.diffuse * dot(normal, lightDir));
           float specular = pow(max(0., mat.specular * dot(lightDir, reflect(ray, normal))), mat.shininess);
-          float shadow = mat.receiveShadows * softShadow(hitObject.point, lightDir) * ambientOcclusion(hitObject.point, normal);
+          float shadow = 1.;//mat.receiveShadows * softShadow(hitObject.point, lightDir) * ambientOcclusion(hitObject.point, normal);
           return (mat.ambient + diffuse * shadow) * pow(mat.color, gammaCorrection) + specular * shadow;
         }
         vec4 getColor(in vec3 origin, in vec3 direction) {
