@@ -5,11 +5,11 @@ import MultiThree from '@/MultiThree';
 @Component
 export default class App extends Vue {
   public async mounted () {
-    (() => new MultiThree(this.$refs.scene as HTMLCanvasElement))();
+    MultiThree.init(this.$refs.scene as HTMLCanvasElement);
   }
 
   public async beforeDestroy () {
-    MultiThree.instance.stopRender();
+    MultiThree.stopRender();
   }
 }
 </script>

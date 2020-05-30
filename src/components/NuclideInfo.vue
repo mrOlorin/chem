@@ -12,13 +12,13 @@ export default class NuclideInfo extends Vue {
   private elements = ISOTOPES.map((I) => I[2]);
   private multiThreeScene!: MultiThreeScene;
 
-  public async mounted () {
+  public mounted () {
     this.multiThreeScene = this.buildScene(this.nuclide);
-    MultiThree.instance.addScene(this.multiThreeScene);
+    MultiThree.addScene(this.multiThreeScene);
   }
 
-  public async beforeDestroy () {
-    MultiThree.instance.removeScene(this.multiThreeScene);
+  public beforeDestroy () {
+    MultiThree.removeScene(this.multiThreeScene);
   }
 
   private buildScene (nucleus: Nucleus): MultiThreeScene {

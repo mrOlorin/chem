@@ -8,22 +8,16 @@ export interface MultiThreeScene {
 }
 
 export default class MultiThree {
-  private static _instance: MultiThree;
-  public static get instance (): MultiThree {
-    return this._instance;
-  }
+  public static timeScale: number = 0.1;
+  public static camera: THREE.Camera;
+  public static scenes: {[key: string]: MultiThreeScene} = {};
+  public static readonly visibleScenes: Array<MultiThreeScene> = [];
+  public static canvas: HTMLCanvasElement;
+  public static renderer: THREE.WebGLRenderer;
+  public static stats: Stats;
+  private static doRender: boolean = false;
 
-  public timeScale: number = 0.1;
-  public readonly camera: THREE.Camera;
-  public scenes: Array<MultiThreeScene> = [];
-  private emptyScenes: Array<number> = [];
-  public readonly visibleScenes: Array<MultiThreeScene> = [];
-  public readonly canvas: HTMLCanvasElement;
-  public readonly renderer: THREE.WebGLRenderer;
-  public readonly stats: Stats;
-  private doRender: boolean = false;
-
-  public constructor (canvas: HTMLCanvasElement) {
+  public static init (canvas: HTMLCanvasElement) {
     if (!canvas) {
       throw new Error('Canvas required');
     }
@@ -46,33 +40,27 @@ export default class MultiThree {
     this.stats = Stats();
     (this.canvas.parentElement as HTMLElement).appendChild(this.stats.domElement);
     this.startRender();
-    MultiThree._instance = this;
   }
 
-  public addScene (multiThreeScene: MultiThreeScene) {
-    const index = this.emptyScenes.shift() || this.scenes.length;
-    this.scenes[index] = multiThreeScene;
-    if (this.isVisible(this.scenes[index].element)) {
-      this.visibleScenes.push(this.scenes[index]);
+  public static addScene (multiThreeScene: MultiThreeScene) {
+    delete this.scenes[multiThreeScene.element.id];
+    this.scenes[multiThreeScene.element.id] = multiThreeScene;
+    if (this.isVisible(this.scenes[multiThreeScene.element.id].element)) {
+      this.visibleScenes.push(this.scenes[multiThreeScene.element.id]);
       this.adjustCanvas();
     }
   }
 
-  public removeScene (multiThreeScene: MultiThreeScene) {
-    for (let i = 0, len = this.scenes.length; i < len; i++) {
-      if (this.scenes[i] === multiThreeScene) {
-        delete this.scenes[i];
-        this.emptyScenes.push(i);
-      }
-    }
+  public static removeScene (multiThreeScene: MultiThreeScene) {
+    delete this.scenes[multiThreeScene.element.id];
   }
 
-  public stopRender () {
+  public static stopRender () {
     this.doRender = false;
     this.removeEventListeners();
   }
 
-  public startRender () {
+  public static startRender () {
     this.doRender = true;
     this.addEventListeners();
     this.adjustCanvas();
@@ -104,36 +92,38 @@ export default class MultiThree {
     animate(0);
   }
 
-  private addEventListeners () {
+  private static addEventListeners () {
     window.addEventListener('scroll', this.adjustCanvasAndCheckVisibility);
     window.addEventListener('resize', this.adjustCanvasAndCheckVisibility);
   }
 
-  private removeEventListeners () {
+  private static removeEventListeners () {
     window.removeEventListener('scroll', this.adjustCanvasAndCheckVisibility);
     window.removeEventListener('resize', this.adjustCanvasAndCheckVisibility);
   }
 
-  private adjustCanvas () {
+  private static adjustCanvas () {
     this.canvas.style.transform = `translate(${window.pageXOffset}px, ${window.pageYOffset}px)`;
     if (this.canvas.width !== this.canvas.clientWidth || this.canvas.height !== this.canvas.clientHeight) {
       this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight, false);
     }
   }
 
-  private checkVisibility () {
+  private static checkVisibility () {
     this.visibleScenes.length = 0;
-    this.scenes.forEach(scene => scene && this.isVisible(scene.element) && this.visibleScenes.push(scene));
+    for (const i in this.scenes) {
+      this.scenes[i] && this.isVisible(this.scenes[i].element) && this.visibleScenes.push(this.scenes[i]);
+    }
   }
 
-  private isVisible (element: Element): boolean {
+  private static isVisible (element: Element): boolean {
     const rect = element.getBoundingClientRect();
     return rect.bottom >= 0 && rect.top <= this.renderer.domElement.clientHeight &&
       rect.right >= 0 && rect.left <= this.renderer.domElement.clientWidth;
   }
 
-  private adjustCanvasAndCheckVisibility = () => {
-    this.adjustCanvas();
-    this.checkVisibility();
+  private static adjustCanvasAndCheckVisibility = () => {
+    MultiThree.adjustCanvas();
+    MultiThree.checkVisibility();
   }
 }

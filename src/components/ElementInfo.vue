@@ -10,13 +10,13 @@ export default class ElementInfo extends Vue {
   @Prop(Atom) private atom!: Atom;
   private multiThreeScene!: MultiThreeScene;
 
-  public async mounted () {
+  public mounted () {
     this.multiThreeScene = this.buildScene(this.atom);
-    MultiThree.instance.addScene(this.multiThreeScene);
+    MultiThree.addScene(this.multiThreeScene);
   }
 
-  public async beforeDestroy () {
-    MultiThree.instance.removeScene(this.multiThreeScene);
+  public beforeDestroy () {
+    MultiThree.removeScene(this.multiThreeScene);
   }
 
   private buildScene (atom: Atom): MultiThreeScene {

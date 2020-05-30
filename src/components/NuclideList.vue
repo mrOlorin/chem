@@ -18,11 +18,11 @@ export default class NuclideList extends Vue {
     this.buildNuclides();
   }
 
-  public async mounted () {
+  public mounted () {
     this.$el.addEventListener('wheel', this.onWheel);
   }
 
-  private async beforeDestroy () {
+  private beforeDestroy () {
     this.$el.removeEventListener('wheel', this.onWheel);
   }
 
