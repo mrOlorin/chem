@@ -2,10 +2,10 @@ import Nucleus from '@/chem/Nucleus';
 import ELECTRON_ORBITALS from '@/chem/literals/electronOrbitals';
 
 export interface Electron {
-  n: number;
-  l: number;
-  m: number;
-  ms: number;
+  n: number; // главное; энергетический уровень | размер орбитали
+  l: number; // орбитальное; форма орбитали
+  m: number; // магнитное; ориентация орбитали
+  ms: number; // спиновое; спин
 }
 
 export default class Atom {
@@ -58,9 +58,7 @@ export default class Atom {
       let n = x;
       for (let l = x - (2 - isEven); l >= 0; l -= spinUp) {
         spinUp = 1 - spinUp;
-        for (let ml = -l; ml <= l; ml++) {
-          yield { n, l, m: ml, ms };
-        }
+        for (let m = -l; m <= l; m++) yield { n, l, m, ms };
         ms = -ms;
         n += spinUp;
       }

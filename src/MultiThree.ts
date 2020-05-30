@@ -34,12 +34,11 @@ export default class MultiThree {
     this.canvas.style.width = '100%';
     this.canvas.style.height = '100%';
     this.canvas.style.zIndex = '-1';
-    const rendererParameters: THREE.WebGLRendererParameters = {
+    this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
       context: this.canvas.getContext('webgl2', { alpha: true, antialias: true }) as WebGLRenderingContext,
       antialias: true
-    };
-    this.renderer = new THREE.WebGLRenderer(rendererParameters);
+    });
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setScissorTest(true);
     this.camera = new THREE.PerspectiveCamera(90, 1, 0.1, 100);
@@ -55,6 +54,7 @@ export default class MultiThree {
     this.scenes[index] = multiThreeScene;
     if (this.isVisible(this.scenes[index].element)) {
       this.visibleScenes.push(this.scenes[index]);
+      this.adjustCanvas();
     }
   }
 
@@ -105,33 +105,35 @@ export default class MultiThree {
   }
 
   private addEventListeners () {
-    window.addEventListener('scroll', this.adjustCanvas);
-    window.addEventListener('resize', this.adjustCanvas);
+    window.addEventListener('scroll', this.adjustCanvasAndCheckVisibility);
+    window.addEventListener('resize', this.adjustCanvasAndCheckVisibility);
   }
 
   private removeEventListeners () {
-    window.removeEventListener('scroll', this.adjustCanvas);
-    window.removeEventListener('resize', this.adjustCanvas);
+    window.removeEventListener('scroll', this.adjustCanvasAndCheckVisibility);
+    window.removeEventListener('resize', this.adjustCanvasAndCheckVisibility);
   }
 
-  private adjustCanvas = () => {
+  private adjustCanvas () {
     this.canvas.style.transform = `translate(${window.pageXOffset}px, ${window.pageYOffset}px)`;
     if (this.canvas.width !== this.canvas.clientWidth || this.canvas.height !== this.canvas.clientHeight) {
       this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight, false);
     }
+  }
+
+  private checkVisibility () {
     this.visibleScenes.length = 0;
-    for (const scene of this.scenes) {
-      if (scene && this.isVisible(scene.element)) {
-        this.visibleScenes.push(scene);
-      }
-    }
+    this.scenes.forEach(scene => scene && this.isVisible(scene.element) && this.visibleScenes.push(scene));
   }
 
   private isVisible (element: Element): boolean {
     const rect = element.getBoundingClientRect();
-    return !(
-      rect.bottom < 0 || rect.top > this.renderer.domElement.clientHeight ||
-      rect.right < 0 || rect.left > this.renderer.domElement.clientWidth
-    );
+    return rect.bottom >= 0 && rect.top <= this.renderer.domElement.clientHeight &&
+      rect.right >= 0 && rect.left <= this.renderer.domElement.clientWidth;
+  }
+
+  private adjustCanvasAndCheckVisibility = () => {
+    this.adjustCanvas();
+    this.checkVisibility();
   }
 }

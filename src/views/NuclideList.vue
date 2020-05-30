@@ -2,7 +2,7 @@
 import { Component, Vue } from 'vue-property-decorator';
 
 @Component({
-  name: 'home',
+  name: 'nuclide-list',
   components: {
     NuclideList: () => import('@/components/NuclideList.vue')
   }
