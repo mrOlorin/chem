@@ -54,6 +54,10 @@ export default class NuclideInfo extends Vue {
             <title>Атомное число</title>
             {{nuclide.Z}}
         </text>
+        <text x="2" y="32" font-size="0.6em">
+            <title>Число нейтронов</title>
+            {{nuclide.N}}
+        </text>
         <text :x="10 + 3 * nuclide.A.toString().length" y="19" font-size="1.2em">
             {{nuclide.name}}
         </text>

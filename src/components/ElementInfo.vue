@@ -21,8 +21,8 @@ export default class ElementInfo extends Vue {
 
   private buildScene (atom: Atom): MultiThreeScene {
     const mesh = new ElementMesh(atom);
-    mesh.position.y -= 0.2;
-    mesh.position.z -= 0.006 * atom.nucleus.Z;
+    mesh.position.y -= 1;
+    mesh.position.z -= 5;
     const scene = new THREE.Scene();
     scene.add(mesh);
     return { element: this.$el, scene, tick: mesh.tick };

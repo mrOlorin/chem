@@ -8,11 +8,11 @@ export default class NucleusMesh extends THREE.Points {
   public material: THREE.ShaderMaterial;
   private readonly nucleus: Nucleus;
 
-  public constructor (nucleus: Nucleus, pointSize: number = 20) {
+  public constructor (nucleus: Nucleus) {
     super();
     this.nucleus = nucleus;
     this.material = NucleusMesh.commonMaterial;
-    this.material.uniforms.pointSize.value = pointSize;
+    this.material.uniforms.pointSize.value = 0.5;
 
     const { positions, attributes } = distribution.sphere(this.nucleus);
     this.geometry = new THREE.BufferGeometry();
@@ -64,11 +64,12 @@ export default class NucleusMesh extends THREE.Points {
           vec3 right = normalize(cross(vec3(0., 1., 0.), forward));
           vec3 up = normalize(cross(forward, right));
           camera = mat3(right, up, forward);
-          vec3 p = position; //getPosition(position);
-          gl_PointSize = pointSize;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4( p, 1.0 );
+          vec3 pos = position; //getPosition(position);
+          vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+          gl_PointSize = pointSize * (45. / -mvPosition.z);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4( pos, 1.0 );
           vPosition = gl_Position;
-          lightPos = p - vec3(5., 5., -5.);
+          lightPos = pos - vec3(5., 5., -5.);
           a = vAttribute[2] * vec3(uTime * .227, uTime * .337, uTime * .401);
         }
     `,

@@ -8,7 +8,7 @@ export interface MultiThreeScene {
 }
 
 export default class MultiThree {
-  public static timeScale: number = 0.1;
+  public static timeScale: number = 0.05;
   public static camera: THREE.Camera;
   public static scenes: {[key: string]: MultiThreeScene} = {};
   public static readonly visibleScenes: Array<MultiThreeScene> = [];
@@ -43,10 +43,11 @@ export default class MultiThree {
   }
 
   public static addScene (multiThreeScene: MultiThreeScene) {
-    delete this.scenes[multiThreeScene.element.id];
-    this.scenes[multiThreeScene.element.id] = multiThreeScene;
-    if (this.isVisible(this.scenes[multiThreeScene.element.id].element)) {
-      this.visibleScenes.push(this.scenes[multiThreeScene.element.id]);
+    const id = multiThreeScene.element.id;
+    delete this.scenes[id];
+    this.scenes[id] = multiThreeScene;
+    if (this.isVisible(multiThreeScene.element)) {
+      this.visibleScenes.push(this.scenes[id]);
       this.adjustCanvas();
     }
   }

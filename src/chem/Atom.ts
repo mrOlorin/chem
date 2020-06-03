@@ -2,25 +2,33 @@ import Nucleus from '@/chem/Nucleus';
 import ELECTRON_ORBITALS from '@/chem/literals/electronOrbitals';
 
 export interface Electron {
-  n: number; // главное; энергетический уровень | размер орбитали
-  l: number; // орбитальное; форма орбитали
-  m: number; // магнитное; ориентация орбитали
-  ms: number; // спиновое; спин
+  n: number; // главное; энергетический уровень | размер орбитали; 1..
+  l: number; // орбитальное; форма орбитали; 0–s, 1–p, 2–d, 3–f
+  m: number; // магнитное; ориентация орбитали; -l..l
+  ms: number; // спиновое; спин; -1/2 | 1/2
 }
+
+const SUP = ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹', '¹⁰', '¹¹', '¹²', '¹³', '¹⁴', '¹⁵', '¹⁶', '¹⁷', '¹⁸', '¹⁹'];
 
 export default class Atom {
   public readonly nucleus: Nucleus;
   public readonly electrons: Array<Electron> = [];
+  public readonly energyLevels: Array<Array<number>> = [];
 
   public constructor (nucleus: Nucleus) {
     this.nucleus = nucleus;
     const electrons = Atom.electronGenerator();
     for (let i = 0; i < this.nucleus.Z; i++) {
-      this.electrons.push(electrons.next().value);
+      const electron = electrons.next().value;
+      this.electrons.push(electron);
+      if (!this.energyLevels[electron.n]) {
+        this.energyLevels[electron.n] = [];
+      }
+      this.energyLevels[electron.n][electron.l] = (this.energyLevels[electron.n][electron.l] || 0) + 1;
     }
   }
 
-  public get mass () : number {
+  public get mass (): number {
     return this.nucleus.mass + this.electrons.length * 0.51099895; // МэВ
   }
 
@@ -30,37 +38,27 @@ export default class Atom {
   }
 
   public get electronConfiguration (): string {
-    const energyLevel: Array<any> = [];
-    for (const electron of this.electrons) {
-      if (!energyLevel[electron.n]) {
-        energyLevel[electron.n] = [];
-      }
-      energyLevel[electron.n][electron.l] = (energyLevel[electron.n][electron.l] || 0) + 1;
-    }
-    const sup = ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹', '¹⁰', '¹¹', '¹²', '¹³', '¹⁴', '¹⁵', '¹⁶', '¹⁷', '¹⁸', '¹⁹'];
-    return energyLevel.map(
+    return this.energyLevels.map(
       (energySublevel: any, n: any) => energySublevel.map(
-        (count: any, l: any) => n + 'spdf'[l] + sup[count]
+        (count: any, l: any) => n + 'spdf'[l] + SUP[count]
       ).join('')
     ).join('');
   }
 
   public get electronConfigurationShort (): string {
-    const config = this.electronConfiguration;
-    return config.substring(config.indexOf('' + this.outerLevel));
+    const outerLevel = this.outerLevel;
+    return this.energyLevels.map(
+      (energySublevel: any, n: any) => energySublevel.map(
+        (count: any, l: any) => (count < 2 * (2 * l + 1) || n === outerLevel) ? (n + 'spdf'[l] + SUP[count]) : ''
+      ).join('')
+    ).join('');
   }
 
   public static * electronGenerator (): IterableIterator<Electron> {
     // TODO: Провал электрона мб?
-    let spinUp = 1;
-    let ms = 0.5;
     for (let x = 1, isEven = 0; ; x += isEven, isEven = 1 - isEven) {
-      let n = x;
-      for (let l = x - (2 - isEven); l >= 0; l -= spinUp) {
-        spinUp = 1 - spinUp;
+      for (let n = x, l = x - (2 - isEven), ms = 0.5; l >= 0; n += +(ms < 0), l -= +(ms < 0), ms = -ms) {
         for (let m = -l; m <= l; m++) yield { n, l, m, ms };
-        ms = -ms;
-        n += spinUp;
       }
     }
   }
