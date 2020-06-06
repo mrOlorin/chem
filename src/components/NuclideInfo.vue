@@ -1,6 +1,6 @@
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator';
-import Nucleus from '@/chem/Nucleus';
+import Nucleus from '@/chem/paricles/Nucleus';
 import ISOTOPES from '@/chem/literals/isotopes';
 import MultiThree, { MultiThreeScene } from '@/MultiThree';
 import NucleusMesh from '@/chem/mesh/NucleusMesh';
@@ -9,16 +9,17 @@ import * as THREE from 'three';
 @Component
 export default class NuclideInfo extends Vue {
   @Prop(Nucleus) private nuclide!: Nucleus;
-  private elements = ISOTOPES.map((I) => I[2]);
-  private multiThreeScene!: MultiThreeScene;
+  private elements = ISOTOPES.map(I => I[2]);
+  private scene!: MultiThreeScene;
 
   public mounted () {
-    this.multiThreeScene = this.buildScene(this.nuclide);
-    MultiThree.addScene(this.multiThreeScene);
+    this.scene = this.buildScene(this.nuclide);
+    MultiThree.addScene(this.scene);
   }
 
   public beforeDestroy () {
-    MultiThree.removeScene(this.multiThreeScene);
+    (this.scene.scene.children[0] as NucleusMesh).dispose();
+    MultiThree.removeScene(this.scene);
   }
 
   private buildScene (nucleus: Nucleus): MultiThreeScene {
@@ -62,8 +63,8 @@ export default class NuclideInfo extends Vue {
             {{nuclide.name}}
         </text>
         <text text-anchor="end" x="79" y="10" font-size="0.6em">
-            <title>Энергия связи {{nuclide.bindingEnergy.toPrecision(4)}} &#8260; {{nuclide.A}} МэВ</title>
-            {{(nuclide.bindingEnergy / nuclide.A).toPrecision(4)}}
+            <title>Радиус {{nuclide.R}}м</title>
+            {{(nuclide.R).toPrecision(4)}}
         </text>
     </svg>
 </template>

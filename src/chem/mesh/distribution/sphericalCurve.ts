@@ -1,4 +1,4 @@
-import Nucleus from '@/chem/Nucleus';
+import Nucleus from '@/chem/paricles/Nucleus';
 import { NucleonDistribution } from './NucleonDistribution';
 
 export default (nucleus: Nucleus, scale: number = 1): NucleonDistribution => {

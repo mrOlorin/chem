@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import distribution from './distribution/NucleonDistribution';
-import Nucleus from '@/chem/Nucleus';
+import Nucleus from '@/chem/paricles/Nucleus';
 
 export default class NucleusMesh extends THREE.Points {
   private static commonMaterial: THREE.ShaderMaterial = NucleusMesh.buildMaterial();
@@ -19,6 +19,10 @@ export default class NucleusMesh extends THREE.Points {
     this.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     this.geometry.setAttribute('attributes', new THREE.BufferAttribute(attributes, 3));
     this.geometry.computeBoundingSphere();
+  }
+
+  public dispose () {
+    this.geometry.dispose();
   }
 
   public tick = (time: number, deltTime: number) => {
@@ -57,13 +61,17 @@ export default class NucleusMesh extends THREE.Points {
           return p;
         }
 
-        void main() {
-          vAttribute = attributes;
+        void setCamera(out mat3 camera) {
           vec3 rayDirection = vec3(0, 0, -1);
           vec3 forward = normalize(rayDirection);
           vec3 right = normalize(cross(vec3(0., 1., 0.), forward));
           vec3 up = normalize(cross(forward, right));
           camera = mat3(right, up, forward);
+        }
+
+        void main() {
+          vAttribute = attributes;
+          setCamera(camera);
           vec3 pos = position; //getPosition(position);
           vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
           gl_PointSize = pointSize * (45. / -mvPosition.z);
@@ -173,13 +181,13 @@ export default class NucleusMesh extends THREE.Points {
           }
           return clamp(1. - occ, 0., 1.);
         }
-        vec3 phongLighting(in HitObject hitObject, in Material mat, in vec3 ray) {
+        vec3 phongLighting(in HitObject hitObject, in vec3 direction) {
           vec3 normal = getNormal(hitObject);
           vec3 lightDir = normalize(lightPos - hitObject.point);
-          float diffuse = max(0., mat.diffuse * dot(normal, lightDir));
-          float specular = pow(max(0., mat.specular * dot(lightDir, reflect(ray, normal))), mat.shininess);
-          float shadow = 1.;//mat.receiveShadows * softShadow(hitObject.point, lightDir) * ambientOcclusion(hitObject.point, normal);
-          return (mat.ambient + diffuse * shadow) * pow(mat.color, gammaCorrection) + specular * shadow;
+          float diffuse = max(0., hitObject.material.diffuse * dot(normal, lightDir));
+          float specular = pow(max(0., hitObject.material.specular * dot(lightDir, reflect(direction, normal))), hitObject.material.shininess);
+          float shadow = 1.;//hitObject.material.receiveShadows * softShadow(hitObject.point, lightDir) * ambientOcclusion(hitObject.point, normal);
+          return (hitObject.material.ambient + diffuse * shadow) * pow(hitObject.material.color, gammaCorrection) + specular * shadow;
         }
         vec4 getColor(in vec3 origin, in vec3 direction) {
           HitObject hitObject;
@@ -188,7 +196,7 @@ export default class NucleusMesh extends THREE.Points {
             discard;
           }
           hitObject.material = getMaterial(hitObject.point);
-          vec3 color = phongLighting(hitObject, hitObject.material, direction);
+          vec3 color = phongLighting(hitObject, direction);
           return vec4(color, 1.);//blend(color, FOG_COLOR, hitObject.distance / FOG_DIST);
         }
         void main() {

@@ -1,8 +1,8 @@
-import Quark from '@/chem/Quark';
+import Quark from '@/chem/paricles/Quark';
 import QUARKS from '@/chem/literals/quarks';
-import Nucleon from '@/chem/Nucleon';
-import Nucleus from '@/chem/Nucleus';
-import Atom from '@/chem/Atom';
+import Nucleon from '@/chem/paricles/Nucleon';
+import Nucleus from '@/chem/paricles/Nucleus';
+import Atom from '@/chem/paricles/Atom';
 
 export default class ParticleBuilder {
   protected static buildNucleon (quarks: Array<Quark>) {

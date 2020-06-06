@@ -1,4 +1,4 @@
-import Quark from '@/chem/Quark';
+import Quark from '@/chem/paricles/Quark';
 
 export default class Nucleon {
   public readonly quarks: Array<Quark>

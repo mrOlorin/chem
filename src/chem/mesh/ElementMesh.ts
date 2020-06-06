@@ -1,17 +1,21 @@
 import * as THREE from 'three';
-import Atom from '@/chem/Atom';
-import NucleusMesh from '@/chem/mesh/NucleusMesh';
+import Atom from '@/chem/paricles/Atom';
+import ElectronCloudMesh from '@/chem/mesh/ElectronCloudMesh';
 
 export default class ElementMesh extends THREE.Mesh {
-  private nuclideMesh: NucleusMesh;
+  private readonly electronCloudMesh: ElectronCloudMesh;
 
   public constructor (atom: Atom) {
     super();
-    this.nuclideMesh = new NucleusMesh(atom.nucleus);
-    this.add(this.nuclideMesh);
+    this.electronCloudMesh = new ElectronCloudMesh(atom.outerVacantElectrons);
+    this.add(this.electronCloudMesh);
   }
 
   public tick = (time: number, deltTime: number) => {
-    this.nuclideMesh.tick(time, deltTime);
+    this.electronCloudMesh.tick(time, deltTime);
+  }
+
+  public dispose () {
+    this.electronCloudMesh.dispose();
   }
 }

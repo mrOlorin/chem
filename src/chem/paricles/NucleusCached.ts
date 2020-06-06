@@ -1,4 +1,4 @@
-import Nucleus, { Parity } from '@/chem/Nucleus';
+import Nucleus, { Parity } from '@/chem/paricles/Nucleus';
 
 export default class NucleusCached extends Nucleus {
   private cache: { [key in keyof Nucleus]?: any } = {};

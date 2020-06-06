@@ -1,6 +1,6 @@
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator';
-import Atom from '@/chem/Atom';
+import Atom from '@/chem/paricles/Atom';
 import MultiThree, { MultiThreeScene } from '@/MultiThree';
 import * as THREE from 'three';
 import ElementMesh from '@/chem/mesh/ElementMesh';
@@ -8,24 +8,33 @@ import ElementMesh from '@/chem/mesh/ElementMesh';
 @Component
 export default class ElementInfo extends Vue {
   @Prop(Atom) private atom!: Atom;
-  private multiThreeScene!: MultiThreeScene;
+  private scene!: MultiThreeScene;
 
   public mounted () {
-    this.multiThreeScene = this.buildScene(this.atom);
-    MultiThree.addScene(this.multiThreeScene);
+    this.scene = this.buildScene(this.atom);
+    MultiThree.addScene(this.scene);
   }
 
   public beforeDestroy () {
-    MultiThree.removeScene(this.multiThreeScene);
+    (this.scene.scene.children[0] as ElementMesh).dispose();
+    MultiThree.removeScene(this.scene);
   }
 
   private buildScene (atom: Atom): MultiThreeScene {
     const mesh = new ElementMesh(atom);
-    mesh.position.y -= 1;
-    mesh.position.z -= 5;
+    mesh.position.y -= 0.2;
+    mesh.position.z -= 0.2;
     const scene = new THREE.Scene();
     scene.add(mesh);
     return { element: this.$el, scene, tick: mesh.tick };
+  }
+
+  protected onMouseover (e: MouseEvent) {
+    // console.log('over', e);
+  }
+
+  protected onMouseleave (e: MouseEvent) {
+    // console.log('leave', e);
   }
 }
 </script>
@@ -38,7 +47,9 @@ export default class ElementInfo extends Vue {
     }
 </style>
 <template>
-    <svg width="80" height="80" class="element-info">
+    <svg width="80" height="80" class="element-info"
+         @mouseover="onMouseover"
+         @mouseleave="onMouseleave">
         <text x="2" y="10" font-size="0.6em">
             <title>Массовое число</title>
             {{atom.nucleus.A}}
@@ -50,13 +61,9 @@ export default class ElementInfo extends Vue {
         <text :x="10 + 3 * atom.nucleus.A.toString().length" y="19" font-size="1.2em">
             {{atom.nucleus.name}}
         </text>
-        <text text-anchor="end" x="79" y="10" font-size="0.6em">
+        <text text-anchor="end" x="79" y="10" font-size="0.7em">
             <title>{{atom.electronConfiguration}}</title>
             {{atom.electronConfigurationShort}}
-        </text>
-        <text text-anchor="end" x="79" y="21" font-size="0.6em">
-            <title>Масса {{Math.round((atom.mass + Number.EPSILON) * 10000) / 10000}}МэВ</title>
-            {{atom.mass.toPrecision(1)}}
         </text>
     </svg>
 </template>

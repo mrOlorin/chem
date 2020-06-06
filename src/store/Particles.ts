@@ -1,8 +1,8 @@
 import { VuexModule, Module, Mutation, Action } from 'vuex-module-decorators';
-import Atom from '@/chem/Atom';
+import Atom from '@/chem/paricles/Atom';
 import ParticleBuilderCached from '@/chem/ParticleBuilderCached';
 import ISOTOPES from '@/chem/literals/isotopes';
-import Nucleus from '@/chem/Nucleus';
+import Nucleus from '@/chem/paricles/Nucleus';
 
 type Nuclides = { [key: number]: { [key: number]: Nucleus } };
 

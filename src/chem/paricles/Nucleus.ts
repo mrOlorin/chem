@@ -1,6 +1,6 @@
 import ELEMENTS from '@/chem/literals/elements';
 import magneticMoment from '@/chem/literals/magneticMoment';
-import Nucleon from '@/chem/Nucleon';
+import Nucleon from '@/chem/paricles/Nucleon';
 import { r0 } from '@/chem/literals/constants';
 
 // нечёт-нечёт | нечёт | чёт-чёт

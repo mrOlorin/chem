@@ -9,14 +9,6 @@
         <p>
             Содержит ошибки, не использовать в качестве источника данных!
         </p>
-        <h2>Цели</h2>
-        <ul>
-            <li>Потрогать <a target="_blank" href="//vuejs.org">vue.js</a></li>
-            <li>Научиться привязывать <a href="//threejs.org/" target="_blank">three.js</a>
-                к html в больших масштабах, посмотреть на производительность
-            </li>
-            <li>Общее образование</li>
-        </ul>
         <h2>Технические подробности</h2>
         <h3>Данные</h3>
         <h4>Нуклиды</h4>
@@ -72,6 +64,14 @@
             Эти числа вычисляются уберфункцией. Для некотороых элементов правильно, для
             <a href="//ru.wikipedia.org/wiki/Правило_Клечковского#Исключения_из_правила_Клечковского"
                target="_blank">некотороых</a> — нет.
+        </p>
+        <p>
+            Орбитали рисуются <a href="//www.youtube.com/watch?v=PGtv-dBi2wE"
+                                 target="_blank">raymarching</a>-ом.<br>
+            <code>length(p) - r</code>, где <code>r</code> —
+            <a href="//en.wikipedia.org/wiki/Table_of_spherical_harmonics#Real_spherical_harmonics"
+               target="_blank">сферическая гармоника</a>
+            для соответствующих l и m в данной точке.
         </p>
         <p>
             Масса — сумма масс ядра и электронов.

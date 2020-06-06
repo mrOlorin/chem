@@ -1,7 +1,7 @@
-import Nucleus from '@/chem/Nucleus';
-import NucleusCached from '@/chem/NucleusCached';
+import Nucleus from '@/chem/paricles/Nucleus';
+import NucleusCached from '@/chem/paricles/NucleusCached';
 import ParticleBuilder from '@/chem/ParticleBuilder';
-import Nucleon from '@/chem/Nucleon';
+import Nucleon from '@/chem/paricles/Nucleon';
 
 export default class ParticleBuilderCached extends ParticleBuilder {
   private static proton: Nucleon = ParticleBuilder.buildProton();

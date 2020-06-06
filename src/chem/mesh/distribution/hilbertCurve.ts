@@ -1,4 +1,4 @@
-import Nucleus from '@/chem/Nucleus';
+import Nucleus from '@/chem/paricles/Nucleus';
 import { NucleonDistribution } from './NucleonDistribution';
 import * as THREE from 'three';
 import { GeometryUtils } from 'three/examples/jsm/utils/GeometryUtils';
