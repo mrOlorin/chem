@@ -37,7 +37,7 @@ export default class ElectronCloudMesh extends THREE.Points {
     }
 
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setAttribute('electron', new THREE.Int8BufferAttribute(electrons, 4));
+    geometry.setAttribute('electron', new THREE.Float32BufferAttribute(electrons, 4));
     return geometry;
   }
 
@@ -60,7 +60,7 @@ export default class ElectronCloudMesh extends THREE.Points {
         attribute vec4 electron;
         uniform float uTime;
         out vec3 lightPos;
-        out vec4 vElectron;
+        flat out vec4 vElectron;
         out vec4 vTime;
         out mat3 camera;
         void setCamera(out mat3 camera) {
@@ -80,25 +80,20 @@ export default class ElectronCloudMesh extends THREE.Points {
         }
       `,
       fragmentShader: `
-        #define MAX_STEPS 128
+        #define MAX_STEPS 64
         #define PLANK_LENGTH .001
-        #define FOG_DIST 110.
+        #define FOG_DIST 5.
         #define MAX_DIST FOG_DIST
         #define FOG_COLOR vec3(1.,1.,1.)
         const vec2 swizzleStep = vec2(PLANK_LENGTH, 0);
         const vec3 gammaCorrection = vec3(1.0 / 2.2);
 
         uniform float uTime;
-        in vec4 vElectron;
+        flat in vec4 vElectron;
         in vec4 vTime;
         in mat3 camera;
         in vec3 lightPos;
         float rBohr = ${rBohr};
-
-        vec2 cExp(float x) {
-          float s = sin(x);
-          return vec2(-s, s) + cos(x);
-        }
 
         struct Material {
           vec4 color;
@@ -122,48 +117,46 @@ export default class ElectronCloudMesh extends THREE.Points {
 
         float sphericalHarmonic(in vec4 e, vec3 p)
         {
-          int l = int(e.y);
-          int m = int(e.z);
           // http://en.wikipedia.org/wiki/Table_of_spherical_harmonics#Real_spherical_harmonics
-          if (l == 0) {
+          if (e.y == 0.) {
             return 0.28209479177387814;
-          } 
+          }
           float r = length(p);
-          if (l == 1) {
-            if (m == -1) return 0.4886025119029199 * (p.y / r);
-            if (m == 0) return 0.4886025119029199 * (p.z / r);
-            if (m == 1) return 0.4886025119029199 * (p.x / r);
+          if (e.y == 1.) {
+            if (e.z == -1.) return 0.4886025119029199 * (p.y / r);
+            if (e.z == 0.) return 0.4886025119029199 * (p.z / r);
+            if (e.z == 1.) return 0.4886025119029199 * (p.x / r);
           } 
-          if (l == 2) {
+          if (e.y == 2.) {
             float r2 = r * r;
-            if (m == -2) return 1.0925484305920792 * ((p.x * p.y) / r2);
-            if (m == -1) return 1.0925484305920792 * ((p.y * p.z) / r2);
-            if (m == 0) return 0.31539156525252005 * (-(p.x * p.x) - (p.y * p.y) + 2.0 * (p.z * p.z)) / r2;
-            if (m == 1) return 1.0925484305920792 * ((p.z * p.x) / r2);
-            if (m == 2) return 0.5462742152960396 * ((p.x * p.x) - (p.y * p.y)) / r2;
+            if (e.z == -2.) return 1.0925484305920792 * ((p.x * p.y) / r2);
+            if (e.z == -1.) return 1.0925484305920792 * ((p.y * p.z) / r2);
+            if (e.z == 0.) return 0.31539156525252005 * ((-(p.x * p.x) - (p.y * p.y) + 2.0 * (p.z * p.z)) / r2);
+            if (e.z == 1.) return 1.0925484305920792 * ((p.z * p.x) / r2);
+            if (e.z == 2.) return 0.5462742152960396 * (((p.x * p.x) - (p.y * p.y)) / r2);
           }
-          if (l == 3) {
+          if (e.y == 3.) {
             float r3 = r * r * r;
-            if (m == -3) return 0.5900435899266435 * (((3.0 * p.x * p.x - p.y * p.y) * p.y) / r3);
-            if (m == -2) return 2.890611442640554 * ((p.x * p.y * p.z) / r3);
-            if (m == -1) return 0.4570457994644658 * ((p.y * (4.0 * p.z * p.z - p.x * p.x - p.y * p.y)) / r3);
-            if (m == 0) return 0.3731763325901154 * ((p.z * (2.0 * p.z * p.z - 3.0 * p.x * p.x - 3.0 * p.y * p.y)) / r3);
-            if (m == 1) return 0.4570457994644658 * ((p.x * (4.0 * p.z * p.z - p.x * p.x - p.y * p.y)) / r3);
-            if (m == 2) return 1.445305721320277 * (((p.x * p.x - p.y * p.y) * p.z) / r3);
-            if (m == 3) return 0.5900435899266435 * (((p.x * p.x - 3.0 * p.y * p.y) * p.x) / r3);
+            if (e.z == -3.) return 0.5900435899266435 * (((3.0 * p.x * p.x - p.y * p.y) * p.y) / r3);
+            if (e.z == -2.) return 2.890611442640554 * ((p.x * p.y * p.z) / r3);
+            if (e.z == -1.) return 0.4570457994644658 * ((p.y * (4.0 * p.z * p.z - p.x * p.x - p.y * p.y)) / r3);
+            if (e.z == 0.) return 0.3731763325901154 * ((p.z * (2.0 * p.z * p.z - 3.0 * p.x * p.x - 3.0 * p.y * p.y)) / r3);
+            if (e.z == 1.) return 0.4570457994644658 * ((p.x * (4.0 * p.z * p.z - p.x * p.x - p.y * p.y)) / r3);
+            if (e.z == 2.) return 1.445305721320277 * (((p.x * p.x - p.y * p.y) * p.z) / r3);
+            if (e.z == 3.) return 0.5900435899266435 * (((p.x * p.x - 3.0 * p.y * p.y) * p.x) / r3);
           }
-          if (l == 4) {
+          if (e.y == 4.) {
             float r2 = r * r;
             float r4 = r2 * r2;
-            if (m == -4) return 2.5033429417967046 * (((p.x*p.y)*(p.x*p.x-p.y*p.y))/r4);
-            if (m == -3) return 1.7701307697799304 * (((3. * (p.x * p.x) - (p.y * p.y)) * p.y * p.z) / r4);
-            if (m == -2) return 0.9461746957575601 * (((p.x * p.y) * (7. * (p.z* p.z) - r2)) / r4);
-            if (m == -1) return 0.6690465435572892 * (((p.y * p.z)* (7. * (p.z* p.z) - 3. * r2)) / r4);
-            if (m == 0) return 0.10578554691520431 * ((35. * (p.z * p.z * p.z * p.z) - 30. * (p.z * p.z) * r2 + 3. * r4) / r4);
-            if (m == 1) return 0.6690465435572892 * (((p.x * p.z) * (7. * p.z * p.z - 3. * r2)) / r4);
-            if (m == 2) return 0.47308734787878004 * (((p.x * p.x - p.y * p.y) * (7. * (p.z * p.z) - r2)) / r4);
-            if (m == 3) return 1.7701307697799304 * (((p.x * p.x - 3. * (p.y * p.y)) * p.x * p.z) / r4);
-            if (m == 4) return 0.6258357354491761 * (((p.x * p.x) * (p.x * p.x - 3. * (p.y * p.y)) - (p.y * p.y) * (3. * (p.x * p.x) - p.y * p.y)) / r4);
+            if (e.z == -4.) return 2.5033429417967046 * (((p.x*p.y)*(p.x*p.x-p.y*p.y))/r4);
+            if (e.z == -3.) return 1.7701307697799304 * (((3. * (p.x * p.x) - (p.y * p.y)) * p.y * p.z) / r4);
+            if (e.z == -2.) return 0.9461746957575601 * (((p.x * p.y) * (7. * (p.z* p.z) - r2)) / r4);
+            if (e.z == -1.) return 0.6690465435572892 * (((p.y * p.z)* (7. * (p.z* p.z) - 3. * r2)) / r4);
+            if (e.z == 0.) return 0.10578554691520431 * ((35. * (p.z * p.z * p.z * p.z) - 30. * (p.z * p.z) * r2 + 3. * r4) / r4);
+            if (e.z == 1.) return 0.6690465435572892 * (((p.x * p.z) * (7. * p.z * p.z - 3. * r2)) / r4);
+            if (e.z == 2.) return 0.47308734787878004 * (((p.x * p.x - p.y * p.y) * (7. * (p.z * p.z) - r2)) / r4);
+            if (e.z == 3.) return 1.7701307697799304 * (((p.x * p.x - 3. * (p.y * p.y)) * p.x * p.z) / r4);
+            if (e.z == 4.) return 0.6258357354491761 * (((p.x * p.x) * (p.x * p.x - 3. * (p.y * p.y)) - (p.y * p.y) * (3. * (p.x * p.x) - p.y * p.y)) / r4);
           }
         }
 
@@ -174,21 +167,27 @@ export default class ElectronCloudMesh extends THREE.Points {
 
         float getDistance(vec3 p) {
           p.z += 1.4;
-          p.xz *= rotationMatrix(vElectron.x + vTime.x);
-          //p.xy *= rotationMatrix(vElectron.x + vTime.x);
-          // p.yz *= rotationMatrix(vElectron.x + vTime.x);
+          // p.xz *= rotationMatrix((vElectron.x) + vTime.x);
+          // p.xy *= rotationMatrix((vElectron.x) + vTime.y);
+          // p.yz *= rotationMatrix((vElectron.x) + vTime.z);
 
           float sh = sphericalHarmonic(vElectron, p);
 
-          float cloudDistance = length(p) - abs(sh * (sin(vElectron.x + vTime.z) + vElectron.a * 0.5));
+          float cloudDistance = length(p) - abs(sh * (sin((vElectron.x) + vTime.y) + vElectron.a * 0.5));
           cloudDistance *= .4;
           return cloudDistance;
           return max(p.z,  cloudDistance);
         }
 
+        vec2 cExp(float x) {
+          float s = sin(x);
+          return vec2(-s, s) + cos(x);
+        }
+
         void getMaterial(inout HitObject hitObject) {
           float sh = sphericalHarmonic(vElectron, hitObject.point);
-          hitObject.material.color.rgba = vec4(cExp(sh), vElectron.a, 1.);
+          hitObject.material.color.grb = vec3(cExp(sh), vElectron.a);
+          hitObject.material.color.a = .5;
           hitObject.material.diffuse = .4;
           hitObject.material.specular = .3;
           hitObject.material.ambient = .3;

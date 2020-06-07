@@ -22,34 +22,21 @@ export default class ElementInfo extends Vue {
 
   private buildScene (atom: Atom): MultiThreeScene {
     const mesh = new ElementMesh(atom);
-    mesh.position.y -= 0.2;
-    mesh.position.z -= 0.2;
     const scene = new THREE.Scene();
     scene.add(mesh);
     return { element: this.$el, scene, tick: mesh.tick };
-  }
-
-  protected onMouseover (e: MouseEvent) {
-    // console.log('over', e);
-  }
-
-  protected onMouseleave (e: MouseEvent) {
-    // console.log('leave', e);
   }
 }
 </script>
 <style>
     .element-info {
-        border: 1px solid #2c3e50;
         padding: 2px;
         margin-right: 4px;
-        margin-bottom: 4px;
+        border: 1px dashed #2c3e50;
     }
 </style>
 <template>
-    <svg width="80" height="80" class="element-info"
-         @mouseover="onMouseover"
-         @mouseleave="onMouseleave">
+    <svg width="80" height="80" class="element-info">
         <text x="2" y="10" font-size="0.6em">
             <title>Массовое число</title>
             {{atom.nucleus.A}}

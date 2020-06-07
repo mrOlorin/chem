@@ -25,7 +25,7 @@ export default class NuclideInfo extends Vue {
   private buildScene (nucleus: Nucleus): MultiThreeScene {
     const mesh = new NucleusMesh(nucleus);
     mesh.position.y -= 0.2;
-    mesh.position.z -= 0.006 * nucleus.Z;
+    mesh.position.z -= 0.007 * nucleus.Z;
     const scene = new THREE.Scene();
     scene.add(mesh);
     return { element: this.$el, scene, tick: mesh.tick };

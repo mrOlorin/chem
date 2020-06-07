@@ -13,7 +13,7 @@ const SUP = ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹', 
 export default class Atom {
   public readonly nucleus: Nucleus;
   public readonly electrons: Array<Electron> = [];
-  public readonly energyLevels: Array<Array<number>> = [];
+  public readonly orbitals: Array<Array<number>> = [];
 
   public constructor (nucleus: Nucleus) {
     this.nucleus = nucleus;
@@ -21,10 +21,10 @@ export default class Atom {
     for (let i = 0; i < this.nucleus.Z; i++) {
       const electron = electrons.next().value;
       this.electrons.push(electron);
-      if (!this.energyLevels[electron.n]) {
-        this.energyLevels[electron.n] = [];
+      if (!this.orbitals[electron.n]) {
+        this.orbitals[electron.n] = [];
       }
-      this.energyLevels[electron.n][electron.l] = (this.energyLevels[electron.n][electron.l] || 0) + 1;
+      this.orbitals[electron.n][electron.l] = (this.orbitals[electron.n][electron.l] || 0) + 1;
     }
   }
 
@@ -50,7 +50,7 @@ export default class Atom {
 
   public get outerVacantLevel (): number {
     const sumReducer = (accumulator: number, currentValue: number) => accumulator + currentValue;
-    const reducer = (maxN: number, electron: Electron) => this.energyLevels[electron.n].reduce(sumReducer) <= 2 * (2 * electron.l + 1) ? Math.max(electron.n, maxN) : electron.n;
+    const reducer = (maxN: number, electron: Electron) => this.orbitals[electron.n].reduce(sumReducer) <= 2 * (2 * electron.l + 1) ? Math.max(electron.n, maxN) : electron.n;
     return this.electrons.reduce(reducer, this.electrons[0].n);
   }
 
@@ -66,7 +66,7 @@ export default class Atom {
   }
 
   public get electronConfiguration (): string {
-    return this.energyLevels.map(
+    return this.orbitals.map(
       (energySublevel: any, n: any) => energySublevel.map(
         (count: any, l: any) => n + 'spdf'[l] + SUP[count]
       ).join('')
@@ -75,7 +75,7 @@ export default class Atom {
 
   public get electronConfigurationShort (): string {
     const outerLevel = this.outerLevel;
-    return this.energyLevels.map(
+    return this.orbitals.map(
       (energySublevel: any, n: any) => energySublevel.map(
         (count: any, l: any) => (count < 2 * (2 * l + 1) || n === outerLevel) ? (n + 'spdf'[l] + SUP[count]) : ''
       ).join('')
@@ -104,7 +104,7 @@ export default class Atom {
       result.push({
         predefined: JSON.stringify(ELECTRON_ORBITALS[i]),
         calculated: JSON.stringify(Object.values(toCheck)),
-        isEq: isCorrect
+        isEqual: isCorrect
       });
     }
     console.table(result);

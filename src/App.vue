@@ -24,6 +24,8 @@ export default class App extends Vue {
             <router-link to="/">Элементы</router-link>
             |
             <router-link to="/nuclides">Нуклиды</router-link>
+            |
+            <router-link to="/about">О</router-link>
         </div>
         <router-view/>
     </div>
