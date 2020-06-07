@@ -119,44 +119,44 @@ export default class ElectronCloudMesh extends THREE.Points {
         {
           // http://en.wikipedia.org/wiki/Table_of_spherical_harmonics#Real_spherical_harmonics
           if (e.y == 0.) {
-            return 0.28209479177387814;
+            return 0.28;
           }
           float r = length(p);
           if (e.y == 1.) {
-            if (e.z == -1.) return 0.4886025119029199 * (p.y / r);
-            if (e.z == 0.) return 0.4886025119029199 * (p.z / r);
-            if (e.z == 1.) return 0.4886025119029199 * (p.x / r);
+            if (e.z == -1.) return 0.49 * (p.y / r);
+            if (e.z == 0.) return 0.49 * (p.z / r);
+            if (e.z == 1.) return 0.49 * (p.x / r);
           } 
           if (e.y == 2.) {
             float r2 = r * r;
-            if (e.z == -2.) return 1.0925484305920792 * ((p.x * p.y) / r2);
-            if (e.z == -1.) return 1.0925484305920792 * ((p.y * p.z) / r2);
-            if (e.z == 0.) return 0.31539156525252005 * ((-(p.x * p.x) - (p.y * p.y) + 2.0 * (p.z * p.z)) / r2);
-            if (e.z == 1.) return 1.0925484305920792 * ((p.z * p.x) / r2);
-            if (e.z == 2.) return 0.5462742152960396 * (((p.x * p.x) - (p.y * p.y)) / r2);
+            if (e.z == -2.) return 1.09 * ((p.x * p.y) / r2);
+            if (e.z == -1.) return 1.09 * ((p.y * p.z) / r2);
+            if (e.z == 0.) return 0.32 * ((-(p.x * p.x) - (p.y * p.y) + 2.0 * (p.z * p.z)) / r2);
+            if (e.z == 1.) return 1.09 * ((p.z * p.x) / r2);
+            if (e.z == 2.) return 0.55 * (((p.x * p.x) - (p.y * p.y)) / r2);
           }
           if (e.y == 3.) {
             float r3 = r * r * r;
-            if (e.z == -3.) return 0.5900435899266435 * (((3.0 * p.x * p.x - p.y * p.y) * p.y) / r3);
-            if (e.z == -2.) return 2.890611442640554 * ((p.x * p.y * p.z) / r3);
-            if (e.z == -1.) return 0.4570457994644658 * ((p.y * (4.0 * p.z * p.z - p.x * p.x - p.y * p.y)) / r3);
-            if (e.z == 0.) return 0.3731763325901154 * ((p.z * (2.0 * p.z * p.z - 3.0 * p.x * p.x - 3.0 * p.y * p.y)) / r3);
-            if (e.z == 1.) return 0.4570457994644658 * ((p.x * (4.0 * p.z * p.z - p.x * p.x - p.y * p.y)) / r3);
-            if (e.z == 2.) return 1.445305721320277 * (((p.x * p.x - p.y * p.y) * p.z) / r3);
-            if (e.z == 3.) return 0.5900435899266435 * (((p.x * p.x - 3.0 * p.y * p.y) * p.x) / r3);
+            if (e.z == -3.) return 0.59 * (((3.0 * p.x * p.x - p.y * p.y) * p.y) / r3);
+            if (e.z == -2.) return 2.89 * ((p.x * p.y * p.z) / r3);
+            if (e.z == -1.) return 0.46 * ((p.y * (4.0 * p.z * p.z - p.x * p.x - p.y * p.y)) / r3);
+            if (e.z == 0.) return 0.37 * ((p.z * (2.0 * p.z * p.z - 3.0 * p.x * p.x - 3.0 * p.y * p.y)) / r3);
+            if (e.z == 1.) return 0.46 * ((p.x * (4.0 * p.z * p.z - p.x * p.x - p.y * p.y)) / r3);
+            if (e.z == 2.) return 1.45 * (((p.x * p.x - p.y * p.y) * p.z) / r3);
+            if (e.z == 3.) return 0.59 * (((p.x * p.x - 3.0 * p.y * p.y) * p.x) / r3);
           }
           if (e.y == 4.) {
             float r2 = r * r;
             float r4 = r2 * r2;
-            if (e.z == -4.) return 2.5033429417967046 * (((p.x*p.y)*(p.x*p.x-p.y*p.y))/r4);
-            if (e.z == -3.) return 1.7701307697799304 * (((3. * (p.x * p.x) - (p.y * p.y)) * p.y * p.z) / r4);
-            if (e.z == -2.) return 0.9461746957575601 * (((p.x * p.y) * (7. * (p.z* p.z) - r2)) / r4);
-            if (e.z == -1.) return 0.6690465435572892 * (((p.y * p.z)* (7. * (p.z* p.z) - 3. * r2)) / r4);
-            if (e.z == 0.) return 0.10578554691520431 * ((35. * (p.z * p.z * p.z * p.z) - 30. * (p.z * p.z) * r2 + 3. * r4) / r4);
-            if (e.z == 1.) return 0.6690465435572892 * (((p.x * p.z) * (7. * p.z * p.z - 3. * r2)) / r4);
-            if (e.z == 2.) return 0.47308734787878004 * (((p.x * p.x - p.y * p.y) * (7. * (p.z * p.z) - r2)) / r4);
-            if (e.z == 3.) return 1.7701307697799304 * (((p.x * p.x - 3. * (p.y * p.y)) * p.x * p.z) / r4);
-            if (e.z == 4.) return 0.6258357354491761 * (((p.x * p.x) * (p.x * p.x - 3. * (p.y * p.y)) - (p.y * p.y) * (3. * (p.x * p.x) - p.y * p.y)) / r4);
+            if (e.z == -4.) return 2.50 * (((p.x*p.y)*(p.x*p.x-p.y*p.y))/r4);
+            if (e.z == -3.) return 1.77 * (((3. * (p.x * p.x) - (p.y * p.y)) * p.y * p.z) / r4);
+            if (e.z == -2.) return 0.95 * (((p.x * p.y) * (7. * (p.z* p.z) - r2)) / r4);
+            if (e.z == -1.) return 0.67 * (((p.y * p.z)* (7. * (p.z* p.z) - 3. * r2)) / r4);
+            if (e.z == 0.) return 0.11 * ((35. * (p.z * p.z * p.z * p.z) - 30. * (p.z * p.z) * r2 + 3. * r4) / r4);
+            if (e.z == 1.) return 0.67 * (((p.x * p.z) * (7. * p.z * p.z - 3. * r2)) / r4);
+            if (e.z == 2.) return 0.47 * (((p.x * p.x - p.y * p.y) * (7. * (p.z * p.z) - r2)) / r4);
+            if (e.z == 3.) return 1.77 * (((p.x * p.x - 3. * (p.y * p.y)) * p.x * p.z) / r4);
+            if (e.z == 4.) return 0.63 * (((p.x * p.x) * (p.x * p.x - 3. * (p.y * p.y)) - (p.y * p.y) * (3. * (p.x * p.x) - p.y * p.y)) / r4);
           }
         }
 
