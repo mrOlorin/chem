@@ -166,14 +166,14 @@ export default class ElectronCloudMesh extends THREE.Points {
         }
 
         float getDistance(vec3 p) {
-          p.z += 1.4;
-          // p.xz *= rotationMatrix((vElectron.x) + vTime.x);
-          // p.xy *= rotationMatrix((vElectron.x) + vTime.y);
-          // p.yz *= rotationMatrix((vElectron.x) + vTime.z);
+          p.z += 1.8;
+          p.xz *= rotationMatrix((vElectron.x) + vTime.z*.5);
+          p.xy *= rotationMatrix((vElectron.x) + vTime.z*.75);
+          p.yz *= rotationMatrix((vElectron.x) + vTime.z);
 
           float sh = sphericalHarmonic(vElectron, p);
 
-          float cloudDistance = length(p) - abs(sh * (sin((vElectron.x) + vTime.y) + vElectron.a * 0.5));
+          float cloudDistance = length(p) - abs(sh * (sin((vElectron.x) + vTime.z) + vElectron.a * 0.5));
           cloudDistance *= .4;
           return cloudDistance;
           return max(p.z,  cloudDistance);
