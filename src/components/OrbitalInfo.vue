@@ -23,7 +23,7 @@ export default class OrbitalInfo extends Vue {
 
   private buildScene (electrons: Array<Electron>): MultiThreeScene {
     const mesh = new ElectronCloudMesh(electrons);
-    mesh.position.y -= 0.2;
+    mesh.position.z -= 1.5;
     const scene = new THREE.Scene();
     scene.add(mesh);
     mesh.matrixAutoUpdate = true;
@@ -33,7 +33,7 @@ export default class OrbitalInfo extends Vue {
 </script>
 <template>
     <svg :id="`orbital-${electrons[0].n}-${electrons[0].l}-${electrons[0].m}`" class="orbital">
-        <text x="50" y="100" text-anchor="middle" font-size="0.6em">
+        <text y="140" x="80" text-anchor="middle" font-size="0.6em">
             {{electrons[0].n}}, {{electrons[0].l}}, {{electrons[0].m}}
         </text>
     </svg>

@@ -33,7 +33,7 @@ export default class ElectronCloudMesh extends THREE.Points {
       electrons.push(e.n, e.l, e.m, e.ms * 2);
     }
     for (let i = 0; i < vertexCount; i++) {
-      positions.push(0, 0, 0);
+      positions.push(this.position.x, this.position.y, this.position.z);
     }
 
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
@@ -73,8 +73,9 @@ export default class ElectronCloudMesh extends THREE.Points {
         void main() {
           setCamera(camera);
           vElectron = electron;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4( 0.,0.,0., 1.0 );
-          gl_PointSize = 80.;
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          gl_Position = projectionMatrix * mvPosition;
+          gl_PointSize = 1000. / -mvPosition.z;
           lightPos = vec3(3., 2., -3.);
           vTime = .1 * vec4(uTime, uTime * .5, uTime * .25, uTime * .125);
         }
@@ -166,15 +167,15 @@ export default class ElectronCloudMesh extends THREE.Points {
         }
 
         float getDistance(vec3 p) {
-          p.z += 1.8;
-          p.xz *= rotationMatrix((vElectron.x) + vTime.z*.5);
-          p.xy *= rotationMatrix((vElectron.x) + vTime.z*.75);
+          p.z += 2.8;
+          p.xz *= rotationMatrix((vElectron.x) + vTime.z * .5);
+          p.xy *= rotationMatrix((vElectron.x) + vTime.z * .75);
           p.yz *= rotationMatrix((vElectron.x) + vTime.z);
 
           float sh = sphericalHarmonic(vElectron, p);
 
-          float cloudDistance = length(p) - abs(sh * (sin((vElectron.x) + vTime.z) + vElectron.a * 0.5));
-          cloudDistance *= .4;
+          float cloudDistance = length(p) - abs(sh * (.5 * sin((vElectron.x) + vTime.z) + vElectron.a * 0.5));
+          cloudDistance *= .6 - vElectron.y * .1;
           return cloudDistance;
           return max(p.z,  cloudDistance);
         }
@@ -187,7 +188,7 @@ export default class ElectronCloudMesh extends THREE.Points {
         void getMaterial(inout HitObject hitObject) {
           float sh = sphericalHarmonic(vElectron, hitObject.point);
           hitObject.material.color.grb = vec3(cExp(sh), vElectron.a);
-          hitObject.material.color.a = .5;
+          hitObject.material.color.a = .75;
           hitObject.material.diffuse = .4;
           hitObject.material.specular = .3;
           hitObject.material.ambient = .3;
