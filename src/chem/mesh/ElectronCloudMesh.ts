@@ -1,70 +1,83 @@
 import * as THREE from 'three';
 import { Electron } from '@/chem/paricles/Atom';
-import { rBohr } from '@/chem/literals/constants';
+
+interface ElectronCloudMeshOptions {
+  electrons: Array<Electron>;
+  timeScale: number;
+}
 
 export default class ElectronCloudMesh extends THREE.Points {
   private static staticMaterial: THREE.RawShaderMaterial = ElectronCloudMesh.buildMaterial();
-  public material: THREE.RawShaderMaterial;
+  public readonly material: THREE.RawShaderMaterial;
+  public readonly options: ElectronCloudMeshOptions;
 
   public static get material (): THREE.RawShaderMaterial {
     return ElectronCloudMesh.staticMaterial;
   }
 
-  public constructor (private electrons: Array<Electron> = []) {
+  public constructor (options: ElectronCloudMeshOptions) {
     super();
+    this.options = options;
     this.material = ElectronCloudMesh.material;
     this.geometry = this.buildGeometry();
+    this.onBeforeRender = this.tick.bind(this);
   }
 
-  public dispose () {
-    this.geometry.dispose();
-  }
-
-  public tick = (time: number, deltTime: number) => {
-    this.material.uniforms.uTime.value = time;
+  public tick = (renderer: THREE.Renderer, scene: THREE.Scene, camera: THREE.Camera) => {
+    camera.getWorldPosition(this.material.uniforms.rayOrigin.value);
+    camera.getWorldDirection(this.material.uniforms.rayDirection.value);
+    this.material.uniforms.uTime.value = performance.now() * this.options.timeScale;
   }
 
   private buildGeometry (): THREE.BufferGeometry {
-    const geometry = new THREE.BufferGeometry();
     const positions = [];
-    const vertexCount = this.electrons.length;
+    const vertexCount = this.options.electrons.length;
     const electrons = [];
-    for (const e of this.electrons) {
-      electrons.push(e.n, e.l, e.m, e.ms * 2);
+    for (const e of this.options.electrons) {
+      electrons.push(e.n, e.l, e.m, e.ms);
     }
     for (let i = 0; i < vertexCount; i++) {
       positions.push(this.position.x, this.position.y, this.position.z);
     }
 
+    const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     geometry.setAttribute('electron', new THREE.Float32BufferAttribute(electrons, 4));
     return geometry;
   }
 
+  public dispose () {
+    if (this.geometry) this.geometry.dispose();
+  }
+
   static buildMaterial (): THREE.ShaderMaterial {
     return new THREE.ShaderMaterial({
       uniforms: {
-        uTime: { value: 1.0 }
-      },
-      extensions: {
-        derivatives: false,
-        fragDepth: false,
-        drawBuffers: false,
-        shaderTextureLOD: false
+        uTime: { value: 1.0 },
+        rayOrigin: { type: 'v3', value: new THREE.Vector3(0, 0, 0) },
+        rayDirection: { type: 'v3', value: new THREE.Vector3(0, 0, 0) },
+        uPointSize: { value: 1000 }
       },
       side: THREE.DoubleSide,
       blending: THREE.NormalBlending,
       depthTest: true,
       transparent: true,
+      extensions: {
+        derivatives: false,
+        fragDepth: true,
+        drawBuffers: false,
+        shaderTextureLOD: false
+      },
       vertexShader: `
         attribute vec4 electron;
         uniform float uTime;
+        uniform vec3 rayDirection;
+        uniform float uPointSize;
         out vec3 lightPos;
         flat out vec4 vElectron;
         out vec4 vTime;
         out mat3 camera;
         void setCamera(out mat3 camera) {
-          vec3 rayDirection = vec3(0, 0, -1);
           vec3 forward = normalize(rayDirection);
           vec3 right = normalize(cross(vec3(0., 1., 0.), forward));
           vec3 up = normalize(cross(forward, right));
@@ -75,8 +88,8 @@ export default class ElectronCloudMesh extends THREE.Points {
           vElectron = electron;
           vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
           gl_Position = projectionMatrix * mvPosition;
-          gl_PointSize = 1000. / -mvPosition.z;
-          lightPos = vec3(3., 2., -3.);
+          gl_PointSize = uPointSize / -mvPosition.z;
+          lightPos = vec3(-1., -2., -4.);
           vTime = .1 * vec4(uTime, uTime * .5, uTime * .25, uTime * .125);
         }
       `,
@@ -90,11 +103,11 @@ export default class ElectronCloudMesh extends THREE.Points {
         const vec3 gammaCorrection = vec3(1.0 / 2.2);
 
         uniform float uTime;
+        uniform vec3 rayOrigin;
         flat in vec4 vElectron;
         in vec4 vTime;
         in mat3 camera;
         in vec3 lightPos;
-        float rBohr = ${rBohr};
 
         struct Material {
           vec4 color;
@@ -167,17 +180,21 @@ export default class ElectronCloudMesh extends THREE.Points {
         }
 
         float getDistance(vec3 p) {
-          p.z += 2.8;
-          p.xz *= rotationMatrix((vElectron.x) + vTime.z * .5);
-          p.xy *= rotationMatrix((vElectron.x) + vTime.z * .75);
-          p.yz *= rotationMatrix((vElectron.x) + vTime.z);
+          //float backWall = 2.+ p.z;
+          //float cut = p.z;
+          p.xz *= rotationMatrix(vElectron.x + vTime.w * .5);
+          p.xy *= rotationMatrix(vElectron.x + vTime.w * .75);
+          p.yz *= rotationMatrix(vElectron.x + vTime.w);
 
           float sh = sphericalHarmonic(vElectron, p);
 
           float cloudDistance = length(p) - abs(sh * (.5 * sin((vElectron.x) + vTime.z) + vElectron.a * 0.5));
-          cloudDistance *= .6 - vElectron.y * .1;
+          if (vElectron.y > 0.) {
+            cloudDistance *= .6 - vElectron.y * .1;
+          }
           return cloudDistance;
-          return max(p.z,  cloudDistance);
+          //return min(backWall,  cloudDistance);
+          //return max(cut,  cloudDistance);
         }
 
         vec2 cExp(float x) {
@@ -187,11 +204,10 @@ export default class ElectronCloudMesh extends THREE.Points {
 
         void getMaterial(inout HitObject hitObject) {
           float sh = sphericalHarmonic(vElectron, hitObject.point);
-          hitObject.material.color.grb = vec3(cExp(sh), vElectron.a);
-          hitObject.material.color.a = .75;
-          hitObject.material.diffuse = .4;
-          hitObject.material.specular = .3;
-          hitObject.material.ambient = .3;
+          hitObject.material.color = vec4(cExp(sh), vElectron.a, .75);
+          hitObject.material.diffuse = .6;
+          hitObject.material.specular = .4;
+          hitObject.material.ambient = 0.;
           hitObject.material.shininess = 1.;
           hitObject.material.receiveShadows = 1.;
 
@@ -234,9 +250,9 @@ export default class ElectronCloudMesh extends THREE.Points {
         }
         void main() {
           vec2 uv = gl_PointCoord - vec2(.5);
-          gl_FragColor = getColor(vec3(0,0,0), normalize(camera * vec3(uv, .6)));
+          gl_FragColor = getColor(rayOrigin, normalize(camera * vec3(uv, .6)));
         }
-      `,
+      `
     });
   }
 }

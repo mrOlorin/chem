@@ -36,6 +36,14 @@ export default class Nucleus {
     return this.nucleons.reduce((charge: number, nucleon: Nucleon) => charge + nucleon.electricCharge, 0);
   }
 
+  public get spin (): number {
+    return this.nucleons.reduce((spin: number, nucleon: Nucleon) => spin + nucleon.spin, 0) % 1.5;
+  }
+
+  public get mass (): number {
+    return this.nucleons.reduce((mass: number, nucleon: Nucleon) => mass + nucleon.mass, 0);
+  }
+
   // https://en.wikipedia.org/wiki/Woods–Saxon_potential
   public woodSaxonPotential (distance: number): number {
     const V0 = 50; // MeV
@@ -51,14 +59,6 @@ export default class Nucleus {
   public get surfaceArea (): number {
     const a2 = 1; // Квадрупольная деформация
     return 4 * Math.PI * (this.R ** 2) * (1 + (2 / 5) * (a2 ** 2));
-  }
-
-  public get spin (): number {
-    return this.nucleons.reduce((spin: number, nucleon: Nucleon) => spin + nucleon.spin, 0) % 1.5;
-  }
-
-  public get mass (): number {
-    return this.nucleons.reduce((mass: number, nucleon: Nucleon) => mass + nucleon.mass, 0);
   }
 
   public get parity (): Parity {

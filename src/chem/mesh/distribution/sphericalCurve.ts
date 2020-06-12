@@ -1,5 +1,6 @@
 import Nucleus from '@/chem/paricles/Nucleus';
 import { NucleonDistribution } from './NucleonDistribution';
+import { r0 } from '@/chem/literals/constants';
 
 export default (nucleus: Nucleus, scale: number = 1): NucleonDistribution => {
   const sphericalCurve = (a: number, t: number): [number, number, number] => {
@@ -15,29 +16,26 @@ export default (nucleus: Nucleus, scale: number = 1): NucleonDistribution => {
 
   let aSign = 1;
   let offset = 0;
-  let radius;
   let pos: [number, number, number];
-  scale *= 1e14;
-  for (let i = Number.EPSILON; i < nucleus.Z; i++) {
-    radius = nucleus.R * scale;
+  scale *= nucleus.R / r0;
+  for (let i = 0; i < nucleus.Z; i++) {
     aSign = -aSign;
-    pos = sphericalCurve(aSign / nucleus.Z, nucleus.Z - i);
-    positions[offset] = pos[0] * radius;
+    pos = sphericalCurve(aSign / nucleus.Z, i);
+    positions[offset] = pos[1] * scale;
     attributes[offset++] = 1;
-    positions[offset] = pos[1] * radius;
+    positions[offset] = pos[2] * scale;
     attributes[offset++] = 0;
-    positions[offset] = pos[2] * radius;
+    positions[offset] = pos[0] * scale;
     attributes[offset++] = 1 / nucleus.woodSaxonPotential(Math.sqrt(pos[0] ** 2 + pos[1] ** 2 + pos[2] ** 2));
   }
-  for (let i = Number.EPSILON; i < nucleus.N; i++) {
-    radius = nucleus.R * scale;
+  for (let i = 0; i < nucleus.N; i++) {
     aSign = -aSign;
-    pos = sphericalCurve(aSign / nucleus.N, nucleus.N - i);
-    positions[offset] = pos[0] * radius;
+    pos = sphericalCurve(aSign / nucleus.N, i * 2);
+    positions[offset] = pos[1] * scale;
     attributes[offset++] = 0;
-    positions[offset] = pos[1] * radius;
+    positions[offset] = pos[2] * scale;
     attributes[offset++] = 1;
-    positions[offset] = pos[2] * radius;
+    positions[offset] = pos[0] * scale;
     attributes[offset++] = 1 / nucleus.woodSaxonPotential(Math.sqrt(pos[0] ** 2 + pos[1] ** 2 + pos[2] ** 2));
   }
   return { positions, attributes };

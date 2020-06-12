@@ -2,20 +2,26 @@ import * as THREE from 'three';
 import Atom from '@/chem/paricles/Atom';
 import ElectronCloudMesh from '@/chem/mesh/ElectronCloudMesh';
 
+interface ElementMeshOptions {
+  atom: Atom;
+  timeScale: number;
+}
+
 export default class ElementMesh extends THREE.Mesh {
   private readonly electronCloudMesh: ElectronCloudMesh;
+  private readonly options: ElementMeshOptions;
 
-  public constructor (atom: Atom) {
+  public constructor (options: ElementMeshOptions) {
     super();
-    this.electronCloudMesh = new ElectronCloudMesh(atom.outerVacantElectrons);
+    this.options = options;
+    this.electronCloudMesh = new ElectronCloudMesh({
+      electrons: this.options.atom.electrons,
+      timeScale: this.options.timeScale
+    });
     this.add(this.electronCloudMesh);
   }
 
-  public tick = (time: number, deltTime: number) => {
-    this.electronCloudMesh.tick(time, deltTime);
-  }
-
   public dispose () {
-    this.electronCloudMesh.dispose();
+    if (this.electronCloudMesh) this.electronCloudMesh.dispose();
   }
 }

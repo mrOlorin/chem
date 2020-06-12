@@ -18,17 +18,16 @@ export default class NuclideInfo extends Vue {
   }
 
   public beforeDestroy () {
-    (this.scene.scene.children[0] as NucleusMesh).dispose();
     MultiThree.removeScene(this.scene);
   }
 
   private buildScene (nucleus: Nucleus): MultiThreeScene {
-    const mesh = new NucleusMesh(nucleus);
-    mesh.position.y -= 0.2;
-    mesh.position.z -= 0.007 * nucleus.Z;
+    const mesh = new NucleusMesh({ nucleus, timeScale: 1 });
+    mesh.position.z -= 12;
+    mesh.position.y -= 2;
     const scene = new THREE.Scene();
     scene.add(mesh);
-    return { element: this.$el, scene, tick: mesh.tick };
+    return { element: this.$el, scene };
   }
 }
 </script>

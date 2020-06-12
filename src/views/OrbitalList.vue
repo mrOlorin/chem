@@ -29,8 +29,8 @@ export default class ElementList extends Vue {
 <style>
     .orbital {
         display: inline-block;
-        width: 160px;
-        height: 160px;
+        width: 140px;
+        height: 140px;
     }
 </style>
 <template>

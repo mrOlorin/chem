@@ -4,13 +4,13 @@ import Stats from 'three/examples/jsm/libs/stats.module';
 export interface MultiThreeScene {
   element: Element;
   scene: THREE.Scene;
+  dispose?: () => void;
   tick?: (time: number, deltaTime: number) => void;
 }
 
 export default class MultiThree {
-  public static timeScale: number = 0.05;
   public static camera: THREE.Camera;
-  public static scenes: {[key: string]: MultiThreeScene} = {};
+  public static scenes: { [key: string]: MultiThreeScene } = {};
   public static readonly visibleScenes: Array<MultiThreeScene> = [];
   public static canvas: HTMLCanvasElement;
   public static renderer: THREE.WebGLRenderer;
@@ -53,6 +53,9 @@ export default class MultiThree {
   }
 
   public static removeScene (multiThreeScene: MultiThreeScene) {
+    const scene = this.scenes[multiThreeScene.element.id];
+    if (!scene) return;
+    if (scene.dispose) scene.dispose();
     delete this.scenes[multiThreeScene.element.id];
   }
 
@@ -67,30 +70,23 @@ export default class MultiThree {
     this.adjustCanvas();
 
     let y: number;
-    let deltaTime: number;
-    let previousTime = 0;
     let rect: ClientRect;
     let rendererHeight: number;
-    const animate = (time: number): void => {
-      time *= this.timeScale;
-      deltaTime = time - previousTime;
+    const animate = (): void => {
       rendererHeight = this.renderer.domElement.clientHeight;
       for (let i = 0, len = this.visibleScenes.length; i < len; i++) {
-        // @ts-ignore
-        this.visibleScenes[i].tick && this.visibleScenes[i].tick(time, deltaTime);
         rect = this.visibleScenes[i].element.getBoundingClientRect();
         y = rendererHeight - rect.bottom;
         this.renderer.setViewport(rect.left, y, rect.width, rect.height);
         this.renderer.setScissor(rect.left, y, rect.width, rect.height);
         this.renderer.render(this.visibleScenes[i].scene, this.camera);
       }
-      previousTime = time;
       this.stats.update();
       if (this.doRender) {
         requestAnimationFrame(animate);
       }
     };
-    animate(0);
+    animate();
   }
 
   private static addEventListeners () {
@@ -101,6 +97,11 @@ export default class MultiThree {
   private static removeEventListeners () {
     window.removeEventListener('scroll', this.adjustCanvasAndCheckVisibility);
     window.removeEventListener('resize', this.adjustCanvasAndCheckVisibility);
+  }
+
+  private static adjustCanvasAndCheckVisibility = () => {
+    MultiThree.adjustCanvas();
+    MultiThree.checkVisibility();
   }
 
   private static adjustCanvas () {
@@ -121,10 +122,5 @@ export default class MultiThree {
     const rect = element.getBoundingClientRect();
     return rect.bottom >= 0 && rect.top <= this.renderer.domElement.clientHeight &&
       rect.right >= 0 && rect.left <= this.renderer.domElement.clientWidth;
-  }
-
-  private static adjustCanvasAndCheckVisibility = () => {
-    MultiThree.adjustCanvas();
-    MultiThree.checkVisibility();
   }
 }

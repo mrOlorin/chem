@@ -21,9 +21,9 @@ export default class App extends Vue {
     <div id="app">
         <canvas ref="scene"/>
         <div id="nav">
-            <router-link to="/orbitals">Орбитали</router-link>
+            <router-link to="/">Орбитали</router-link>
             |
-            <router-link to="/">Элементы</router-link>
+            <router-link to="/elements">Элементы</router-link>
             |
             <router-link to="/nuclides">Нуклиды</router-link>
             |
