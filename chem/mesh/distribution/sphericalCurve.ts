@@ -26,17 +26,17 @@ export default (nucleus: Nucleus, scale: number = 1): NucleonDistribution => {
     positions[offset] = pos[2] * scale;
     attributes[offset++] = 0;
     positions[offset] = pos[0] * scale;
-    attributes[offset++] = 1 / nucleus.woodSaxonPotential(Math.sqrt(pos[0] ** 2 + pos[1] ** 2 + pos[2] ** 2));
+    attributes[offset++] = 0;
   }
   for (let i = 0; i < nucleus.N; i++) {
     aSign = -aSign;
-    pos = sphericalCurve(aSign / nucleus.N, i * 2);
+    pos = sphericalCurve(aSign / nucleus.N, i);
     positions[offset] = pos[1] * scale;
     attributes[offset++] = 0;
     positions[offset] = pos[2] * scale;
     attributes[offset++] = 1;
     positions[offset] = pos[0] * scale;
-    attributes[offset++] = 1 / nucleus.woodSaxonPotential(Math.sqrt(pos[0] ** 2 + pos[1] ** 2 + pos[2] ** 2));
+    attributes[offset++] = 0;
   }
   return { positions, attributes };
 };

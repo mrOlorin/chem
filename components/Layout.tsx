@@ -9,7 +9,7 @@ type Props = {
 }
 export default class Layout extends React.Component<Props> {
   render () {
-    const { title = 'This is the default title', ...children } = this.props;
+    const { title = 'This is the default title', children } = this.props;
     return (
       <div>
         <Head>
@@ -40,7 +40,7 @@ export default class Layout extends React.Component<Props> {
             </Link>
           </nav>
         </header>
-        <MultiThreeProvider {...children} />
+        <MultiThreeProvider children={children} />
         <footer>
         </footer>
       </div>

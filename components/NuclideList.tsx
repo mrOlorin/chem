@@ -13,7 +13,6 @@ export default class NuclideList extends React.Component<Props, State> {
   public constructor (public props: any) {
     super(props);
     const { nuclides } = props;
-
     this.state = { nuclideRows: NuclideList.buildRows(nuclides) }
   }
 
@@ -27,7 +26,7 @@ export default class NuclideList extends React.Component<Props, State> {
     return nuclideRows;
   }
 
-  render () {
+  public render () {
     const { nuclideRows } = this.state;
     return <table>
       <tbody>{

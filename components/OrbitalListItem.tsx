@@ -15,7 +15,6 @@ type State = {
 export default class OrbitalListItem extends React.Component<Props, State> {
   static contextType = MultiThreeContext;
   private readonly sceneRef: RefObject<SVGSVGElement>;
-  private scene?: MultiThreeScene;
 
   public constructor (props: Props) {
     super(props);
@@ -25,15 +24,10 @@ export default class OrbitalListItem extends React.Component<Props, State> {
     };
   }
 
-  componentDidMount () {
-    this.scene = OrbitalListItem.buildScene(
+  public componentDidMount () {
+    this.context.multiThree.addScene(OrbitalListItem.buildScene(
       this.state.electrons, this.sceneRef.current as SVGSVGElement
-    );
-    this.context.multiThree.addScene(this.scene);
-  }
-
-  componentWillUnmount () {
-    this.scene && this.context.multiThree.removeScene(this.scene);
+    ));
   }
 
   private static buildScene (electrons: Array<Electron>, element: SVGSVGElement): MultiThreeScene {
@@ -44,21 +38,18 @@ export default class OrbitalListItem extends React.Component<Props, State> {
     return { element, scene };
   }
 
-  render () {
+  public render () {
     const { electrons } = this.state;
-    const id = `orbital-${electrons[0].n}-${electrons[0].l}-${electrons[0].m}`;
     const style = {
       width: '100%',
       height: '100%'
     };
-    return (
-      (electrons && <svg id={id}
-                         style={style}
-                         ref={this.sceneRef}>
-          <text y="100%" x="50%" textAnchor="middle" fontSize="0.6em">
-              n: {electrons[0].n} l: {electrons[0].l} m: {electrons[0].m}
-          </text>
-      </svg>)
-    );
+    return <svg id={`orbital-${electrons[0].n}-${electrons[0].l}-${electrons[0].m}`}
+                style={style}
+                ref={this.sceneRef}>
+      <text y="100%" x="50%" textAnchor="middle" fontSize="0.6em">
+        n: {electrons[0].n} l: {electrons[0].l} m: {electrons[0].m}
+      </text>
+    </svg>
   }
 }

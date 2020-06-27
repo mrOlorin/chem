@@ -24,12 +24,12 @@ export default class MultiThreeProvider extends Component<{}, State> {
   }
 
   render () {
-    const { ...children } = this.props;
+    const { children } = this.props;
     const { multiThree } = this.state;
     return (
       <div>
         <canvas ref={this.sceneRef}/>
-        {multiThree && <MultiThreeContext.Provider value={{ multiThree }} {...children} />}
+        {multiThree && <MultiThreeContext.Provider value={{ multiThree }} children={children} />}
       </div>
     )
   }

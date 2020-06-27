@@ -15,7 +15,6 @@ type State = {
 export default class ElementListItem extends React.Component<Props, State> {
   static contextType = MultiThreeContext;
   private readonly sceneRef: RefObject<SVGSVGElement>;
-  private scene?: MultiThreeScene;
 
   public constructor (public props: Props, public context: any) {
     super(props);
@@ -23,13 +22,8 @@ export default class ElementListItem extends React.Component<Props, State> {
     this.sceneRef = React.createRef();
   }
 
-  componentDidMount () {
-    this.scene = ElementListItem.buildScene(this.state.atom, this.sceneRef.current as SVGSVGElement);
-    this.context.multiThree.addScene(this.scene);
-  }
-
-  componentWillUnmount () {
-    this.scene && this.context.multiThree.removeScene(this.scene);
+  public componentDidMount () {
+    this.context.multiThree.addScene(ElementListItem.buildScene(this.state.atom, this.sceneRef.current as SVGSVGElement));
   }
 
   private static buildScene (atom: Atom, element: SVGSVGElement): MultiThreeScene {
@@ -41,35 +35,33 @@ export default class ElementListItem extends React.Component<Props, State> {
     return { element, scene };
   }
 
-  render () {
+  public render () {
     const style = {
       padding: '2px',
       marginRight: '4px',
       border: '1px dashed #2c3e50'
     };
     const { atom } = this.state;
-    return (
-      (atom && <svg id={`element-${atom.Z}`}
-                    width="80" height="80"
-                    className='nuclide-list-item'
-                    style={style}
-                    ref={this.sceneRef}>
-          <text x="2" y="12" fontSize="0.6em">
-              <title>Массовое число</title>
-            {atom.nucleus.A}
-          </text>
-          <text x="2" y="23" fontSize="0.6em">
-              <title>Атомное число</title>
-            {atom.nucleus.Z}
-          </text>
-          <text x={10 + 3 * atom.nucleus.A.toString().length} y="20" fontSize="1.2em">
-            {atom.nucleus.name}
-          </text>
-          <text textAnchor="end" x="78" y="12" fontSize="0.7em">
-              <title>{atom.electronConfiguration}</title>
-            {atom.electronConfigurationShort}
-          </text>
-      </svg>)
-    );
+    return <svg id={`element-${atom.Z}`}
+                width="80" height="80"
+                className='nuclide-list-item'
+                style={style}
+                ref={this.sceneRef}>
+      <text x="2" y="12" fontSize="0.6em">
+        <title>Массовое число</title>
+        {atom.nucleus.A}
+      </text>
+      <text x="2" y="23" fontSize="0.6em">
+        <title>Атомное число</title>
+        {atom.nucleus.Z}
+      </text>
+      <text x={10 + 3 * atom.nucleus.A.toString().length} y="20" fontSize="1.2em">
+        {atom.nucleus.name}
+      </text>
+      <text textAnchor="end" x="78" y="12" fontSize="0.7em">
+        <title>{atom.electronConfiguration}</title>
+        {atom.electronConfigurationShort}
+      </text>
+    </svg>
   }
 }

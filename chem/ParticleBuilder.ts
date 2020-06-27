@@ -56,12 +56,12 @@ export default class ParticleBuilder {
   public static buildElectronShell (n: number = 4): ElectronShell {
     const subLevels: ElectronShell = [];
     for (let l = 0; l <= n; l++) {
-      subLevels[l] = this.buildElectronSHellSublevel(n, l);
+      subLevels[l] = this.buildElectronShellSublevel(n, l);
     }
     return subLevels;
   }
 
-  public static buildElectronSHellSublevel (n: number = 4, l: number = 0): ElectronSHellSublevel {
+  public static buildElectronShellSublevel (n: number = 4, l: number = 0): ElectronSHellSublevel {
     const electrons: Array<[Electron, Electron]> = [];
     for (let m = -l; m <= l; m++) {
       electrons.push([{ n, l, m, ms: 0.5 }, { n, l, m, ms: -0.5 }]);

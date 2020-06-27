@@ -13,7 +13,7 @@ export default class NucleusMesh extends THREE.Points {
   public readonly material: THREE.ShaderMaterial;
   public readonly options: NucleusMeshOptions;
   private readonly nucleus: Nucleus;
-  private readonly timeScale: number = 0.1;
+  private readonly timeScale: number = 0.003;
 
   public constructor (options: NucleusMeshOptions) {
     super();
@@ -33,16 +33,22 @@ export default class NucleusMesh extends THREE.Points {
   public tick = (renderer: THREE.Renderer, scene: THREE.Scene, camera: THREE.Camera) => {
     camera.getWorldPosition(this.material.uniforms.rayOrigin.value);
     camera.getWorldDirection(this.material.uniforms.rayDirection.value);
-    this.material.uniforms.uTime.value = performance.now() * this.timeScale;
+    const time = this.nucleus.A + performance.now() * this.timeScale;
+    this.material.uniforms.uTime.value.set(
+      time,
+      time * 0.5,
+      time * 0.25,
+      time * 0.125
+    );
   }
 
   private static buildMaterial () {
     return new THREE.ShaderMaterial({
       uniforms: {
-        uTime: { value: 0.0 },
+        uTime: { value: new THREE.Vector4(0, 0, 0, 0) },
         rayOrigin: { value: new THREE.Vector3(0, 0, 0) },
         rayDirection: { value: new THREE.Vector3(0, 0, 0) },
-        pointSize: { value: 150 }
+        pointSize: { value: 100 }
       },
       side: THREE.FrontSide,
       blending: THREE.NormalBlending,
@@ -57,21 +63,13 @@ export default class NucleusMesh extends THREE.Points {
       vertexShader: `
         #define PI 3.1415926
         uniform float pointSize;
-        uniform float uTime;
+        uniform vec4 uTime;
         uniform vec3 rayDirection;
         in vec3 attributes;
         varying vec4 vPosition;
         varying vec3 vAttribute;
-        varying vec3 lightPos;
-        varying vec3 a;
+        varying vec3 vLightPos;
         out mat3 camera;
-        out vec4 vTime;
-
-        vec3 getPosition(vec3 p) {
-          p.x += .01 * sin(.9 * uTime + attributes.x + p.x + p.y + p.z);
-          p.y += .01 * cos(.7 * uTime + attributes.y + p.x + p.y + p.z);
-          return p;
-        }
 
         void setCamera(out mat3 camera) {
           vec3 forward = normalize(rayDirection);
@@ -81,15 +79,15 @@ export default class NucleusMesh extends THREE.Points {
         }
 
         void main() {
-          setCamera(camera);
-          vAttribute = attributes;
-          vec3 pos = position; //getPosition(position);
-          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          vec3 pos = position;
+          vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
           gl_Position = projectionMatrix * mvPosition;
           gl_PointSize = pointSize / -mvPosition.z;
+
           vPosition = gl_Position;
-          lightPos = pos - vec3(5., 5., -5.);
-          vTime = vPosition.x+vPosition.y+vPosition.z + .1 * vec4(uTime, uTime * .5, uTime * .25, uTime * .125);
+          vAttribute = attributes;
+          setCamera(camera);
+          vLightPos = pos - vec3(5., 5., -5.);
         }
     `,
       fragmentShader: `
@@ -102,9 +100,8 @@ export default class NucleusMesh extends THREE.Points {
         in mat3 camera;
         varying vec4 vPosition;
         varying vec3 vAttribute;
-        varying vec3 lightPos;
-        varying vec3 a;
-        in vec4 vTime;
+        varying vec3 vLightPos;
+        uniform vec4 uTime;
         uniform vec3 rayOrigin;
         const vec3 gammaCorrection = vec3(1.0 / 2.2);
         struct Material {
@@ -126,16 +123,16 @@ export default class NucleusMesh extends THREE.Points {
 
         float getDistance(vec3 p) {
           p -= vec3(0, 0, -vAttribute.y * .5);
-          p.xy *= mat2(cos(vTime.x), -sin(vTime.x), sin(vTime.x), cos(vTime.x));
-          p.yz *= mat2(cos(vTime.y), -sin(vTime.y), sin(vTime.y), cos(vTime.y));
-          p.xz *= mat2(cos(vTime.z), -sin(vTime.z), sin(vTime.z), cos(vTime.z));
+          p.xy *= mat2(cos(uTime.w), -sin(uTime.w), sin(uTime.w), cos(uTime.w));
+          p.yz *= mat2(cos(uTime.y), -sin(uTime.y), sin(uTime.y), cos(uTime.y));
+          // p.xz *= mat2(cos(uTime.z), -sin(uTime.z), sin(uTime.z), cos(uTime.z));
 
           vec2 q = vec2(length(p.xy) - .4, p.z);
           return length(q) - .1;
         }
         Material getMaterial(vec3 p) {
           Material m;
-          m.color = vec3(vAttribute.x * .923, vAttribute.y * .927, 0.);
+          m.color = vec3(vAttribute.xy, 0.);
           m.diffuse = .4;
           m.specular = .4;
           m.ambient = .3;
@@ -167,6 +164,7 @@ export default class NucleusMesh extends THREE.Points {
         vec3 blend(in vec3 color, in vec3 blendColor, in float blendAmount) {
           return color * (1. - blendAmount) + blendColor * blendAmount;
         }
+        /*
         float softShadow(in vec3 point, in vec3 lightDir) {
           point += lightDir * .1;
           float totalDist = .1;
@@ -182,6 +180,7 @@ export default class NucleusMesh extends THREE.Points {
           }
           return result;
         }
+        */
         float ambientOcclusion(in vec3 p, in vec3 n) {
           float k = 1.;
           float occ = 0.;
@@ -195,7 +194,7 @@ export default class NucleusMesh extends THREE.Points {
         }
         vec3 phongLighting(in HitObject hitObject, in vec3 direction) {
           vec3 normal = getNormal(hitObject);
-          vec3 lightDir = normalize(lightPos - hitObject.point);
+          vec3 lightDir = normalize(vLightPos - hitObject.point);
           float diffuse = max(0., hitObject.material.diffuse * dot(normal, lightDir));
           float specular = pow(max(0., hitObject.material.specular * dot(lightDir, reflect(direction, normal))), hitObject.material.shininess);
           float shadow = 1.;//hitObject.material.receiveShadows * softShadow(hitObject.point, lightDir) * ambientOcclusion(hitObject.point, normal);

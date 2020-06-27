@@ -39,7 +39,7 @@ export default class MultiThree {
     this.startRender();
   }
 
-  public async addScene (multiThreeScene: MultiThreeScene) {
+  public addScene (multiThreeScene: MultiThreeScene) {
     if (!multiThreeScene.element.id) {
       console.error('Element id required.', multiThreeScene.element);
     }
@@ -52,23 +52,19 @@ export default class MultiThree {
     }
   }
 
-  public async removeScene (multiThreeScene: MultiThreeScene) {
-    const scene = this.scenes[multiThreeScene.element.id];
-    scene && scene.scene.traverse(MultiThree.dispose);
+  public removeScene (multiThreeScene: MultiThreeScene) {
+    this.scenes[multiThreeScene.element.id].scene.traverse(MultiThree.dispose);
     delete this.scenes[multiThreeScene.element.id];
-    this.adjustCanvasAndCheckVisibility();
   }
 
   public dispose (): void {
     this.stopRender();
+    this.scenes = {};
+    this.visibleScenes.length = 0;
     requestAnimationFrame(() => {
-      this.visibleScenes.length = 0;
       Object.keys(this.scenes).forEach(key => this.removeScene(this.scenes[key]));
       this.renderer.dispose();
       this.renderer.forceContextLoss();
-      delete this.renderer.context;
-      delete this.renderer.domElement;
-      delete this.renderer;
     });
   }
 
@@ -121,17 +117,13 @@ export default class MultiThree {
     window.removeEventListener('resize', this.adjustCanvasAndCheckVisibility);
   }
 
-  private adjustCanvasAndCheckVisibility = () => {
-    this.adjustCanvas();
-    this.checkVisibility();
-  }
-
-  private adjustCanvas () {
+  private adjustCanvas = () => {
     this.canvas.style.transform = `translate(${window.pageXOffset}px, ${window.pageYOffset}px)`;
     this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight, false);
   }
 
-  private checkVisibility () {
+  private adjustCanvasAndCheckVisibility = () => {
+    this.adjustCanvas();
     this.visibleScenes.length = 0;
     for (const i in this.scenes) {
       this.scenes[i] && this.isVisible(this.scenes[i].element) && this.visibleScenes.push(this.scenes[i]);
