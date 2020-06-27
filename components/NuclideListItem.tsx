@@ -2,39 +2,35 @@ import * as THREE from 'three';
 
 import React, { RefObject } from 'react'
 import Nucleus from '../chem/paricles/Nucleus'
-import ParticleBuilder from '../chem/ParticleBuilder'
-import MultiThree, { MultiThreeScene } from '../utils/MultiThree'
+import { MultiThreeScene } from '../utils/MultiThree'
 import NucleusMesh from '../chem/mesh/NucleusMesh'
+import { MultiThreeContext } from './MultiThreeContext'
 
 type Props = {
-  Z: number,
-  N: number,
+  nucleus: Nucleus,
 }
 type State = {
   nucleus: Nucleus,
   scene?: MultiThreeScene,
 }
-export default class NuclideListItem extends React.Component {
-  public props!: Props;
-  public state: State;
+export default class NuclideListItem extends React.Component<Props, State> {
+  static contextType = MultiThreeContext;
   private sceneRef: RefObject<SVGSVGElement>;
   private scene!: MultiThreeScene;
 
   public constructor (props: Props) {
     super(props);
     this.sceneRef = React.createRef();
-    this.state = {
-      nucleus: ParticleBuilder.buildNucleus(props.Z, props.N)
-    };
+    this.state = { nucleus: props.nucleus };
   }
 
   componentDidMount () {
     this.scene = NuclideListItem.buildScene(this.state.nucleus, this.sceneRef.current as SVGSVGElement);
-    MultiThree.addScene(this.scene);
+    this.context.multiThree.addScene(this.scene);
   }
 
   componentWillUnmount () {
-    MultiThree.removeScene(this.scene);
+    this.scene && this.context.multiThree.removeScene(this.scene);
   }
 
   private static buildScene (nucleus: Nucleus, element: SVGSVGElement): MultiThreeScene {

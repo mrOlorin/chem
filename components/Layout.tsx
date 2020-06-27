@@ -1,26 +1,15 @@
-import React, { ReactNode, RefObject } from 'react'
+import React, { ReactNode } from 'react'
 import Link from 'next/link'
 import Head from 'next/head'
-import MultiThree from '../utils/MultiThree'
+import MultiThreeProvider from './MultiThreeProvider'
 
 type Props = {
   children?: ReactNode
   title?: string
 }
-export default class Layout extends React.Component {
-  private readonly sceneRef: RefObject<HTMLCanvasElement>;
-
-  public constructor (public props: Props) {
-    super(props);
-    this.sceneRef = React.createRef();
-  }
-
-  componentDidMount () {
-    MultiThree.init(this.sceneRef.current as HTMLCanvasElement);
-  }
-
+export default class Layout extends React.Component<Props> {
   render () {
-    const { children, title = 'This is the default title' } = this.props;
+    const { title = 'This is the default title', ...children } = this.props;
     return (
       <div>
         <Head>
@@ -51,10 +40,8 @@ export default class Layout extends React.Component {
             </Link>
           </nav>
         </header>
-        <canvas ref={this.sceneRef}/>
-        {children}
+        <MultiThreeProvider {...children} />
         <footer>
-          <hr/>
         </footer>
       </div>
     );

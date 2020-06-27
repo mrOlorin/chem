@@ -21,7 +21,4 @@ export default class ElementMesh extends THREE.Mesh {
     this.add(this.electronCloudMesh);
   }
 
-  public dispose () {
-    if (this.electronCloudMesh) this.electronCloudMesh.dispose();
-  }
 }

@@ -29,10 +29,6 @@ export default class NucleusMesh extends THREE.Points {
     this.onBeforeRender = this.tick.bind(this);
   }
 
-  public dispose () {
-    if (this.geometry) this.geometry.dispose();
-  }
-
   // @ts-ignore
   public tick = (renderer: THREE.Renderer, scene: THREE.Scene, camera: THREE.Camera) => {
     camera.getWorldPosition(this.material.uniforms.rayOrigin.value);

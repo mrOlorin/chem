@@ -1,45 +1,41 @@
 import * as THREE from 'three';
 import React, { RefObject } from 'react'
-import ParticleBuilder from '../chem/ParticleBuilder'
-import MultiThree, { MultiThreeScene } from '../utils/MultiThree'
+import { MultiThreeScene } from '../utils/MultiThree'
 import Atom from '../chem/paricles/Atom'
 import ElectronCloudMesh from '../chem/mesh/ElectronCloudMesh'
+import { MultiThreeContext } from './MultiThreeContext'
 
 type Props = {
-  Z: number,
+  atom: Atom,
 }
 type State = {
   atom: Atom,
   scene?: MultiThreeScene,
 }
-export default class ElementListItem extends React.Component {
-  public props!: Props;
-  public state: State;
-  private sceneRef: RefObject<SVGSVGElement>;
-  private scene!: MultiThreeScene;
+export default class ElementListItem extends React.Component<Props, State> {
+  static contextType = MultiThreeContext;
+  private readonly sceneRef: RefObject<SVGSVGElement>;
+  private scene?: MultiThreeScene;
 
-  public constructor (props: Props) {
+  public constructor (public props: Props, public context: any) {
     super(props);
+    this.state = { atom: props.atom };
     this.sceneRef = React.createRef();
-    this.state = {
-      atom: ParticleBuilder.buildAtom(props.Z)
-    };
   }
 
   componentDidMount () {
     this.scene = ElementListItem.buildScene(this.state.atom, this.sceneRef.current as SVGSVGElement);
-    MultiThree.addScene(this.scene);
+    this.context.multiThree.addScene(this.scene);
   }
 
   componentWillUnmount () {
-    MultiThree.removeScene(this.scene);
+    this.scene && this.context.multiThree.removeScene(this.scene);
   }
 
   private static buildScene (atom: Atom, element: SVGSVGElement): MultiThreeScene {
-    const mesh = new ElectronCloudMesh({ electrons: atom.outerVacantElectrons, timeScale: 1 });
-    mesh.position.y -= 4;
-    mesh.position.z -= 15;
-    mesh.options.timeScale *= 0.1;
+    const mesh = new ElectronCloudMesh({ electrons: atom.outerVacantElectrons, timeScale: 0.1 });
+    mesh.position.y -= 0.3;
+    mesh.position.z -= 0.4;
     const scene = new THREE.Scene();
     scene.add(mesh);
     return { element, scene };

@@ -1,12 +1,16 @@
 import Nucleus from './Nucleus'
 import ELECTRON_ORBITALS from '../literals/electronOrbitals'
 
-export interface Electron {
+export type Electron = {
   n: number; // главное; энергетический уровень | размер орбитали; 1..
   l: number; // орбитальное; форма орбитали; 0–s, 1–p, 2–d, 3–f
   m: number; // магнитное; ориентация орбитали; -l..l
   ms: number; // спиновое; спин; -1/2 | 1/2
 }
+
+export type ElectronShell = Array<ElectronSHellSublevel>;
+
+export type ElectronSHellSublevel = Array<[Electron, Electron]>;
 
 const SUP = ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹', '¹⁰', '¹¹', '¹²', '¹³', '¹⁴', '¹⁵', '¹⁶', '¹⁷', '¹⁸', '¹⁹'];
 

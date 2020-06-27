@@ -46,17 +46,13 @@ export default class ElectronCloudMesh extends THREE.Points {
     return geometry;
   }
 
-  public dispose () {
-    if (this.geometry) this.geometry.dispose();
-  }
-
   static buildMaterial (): THREE.ShaderMaterial {
     return new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 1.0 },
         rayOrigin: { value: new THREE.Vector3(0, 0, 0) },
         rayDirection: { value: new THREE.Vector3(0, 0, 0) },
-        uPointSize: { value: 1000 }
+        uPointSize: { value: 120 }
       },
       side: THREE.DoubleSide,
       blending: THREE.NormalBlending,
@@ -182,11 +178,11 @@ export default class ElectronCloudMesh extends THREE.Points {
         float getDistance(vec3 p) {
           //float backWall = 2.+ p.z;
           //float cut = p.z;
-          p.xz *= rotationMatrix(vElectron.x + vTime.w * .5);
-          p.xy *= rotationMatrix(vElectron.x + vTime.w * .75);
-          p.yz *= rotationMatrix(vElectron.x + vTime.w);
+          //p.xz *= rotationMatrix(vElectron.x + vTime.w * .5);
+          //p.xy *= rotationMatrix(vElectron.x + vTime.w * .75);
+          //p.yz *= rotationMatrix(vElectron.x + vTime.w);
 
-          float sh = sphericalHarmonic(vElectron, p);
+          float sh = sphericalHarmonic(vElectron, p.zxy);
 
           float cloudDistance = length(p) - abs(sh * (.5 * sin((vElectron.x) + vTime.z) + vElectron.a * 0.5));
           if (vElectron.y > 0.) {

@@ -1,47 +1,28 @@
 import Layout from '../../components/Layout'
 import * as React from 'react'
-import NuclideListItem from '../../components/NuclideListItem'
-import ISOTOPES from '../../chem/literals/isotopes'
-import { GetStaticProps } from 'next'
+import NuclideList from '../../components/NuclideList'
+import ParticleBuilderCached from '../../chem/ParticleBuilderCached'
+import Nucleus from '../../chem/paricles/Nucleus'
 
-type Props = {
-  isotopes: Array<[number, number, number]>
+type Props = void
+type State = {
+  isotopes: Array<Nucleus>;
 }
-export default class Nuclides extends React.Component {
-  public props!: Props;
+export default class Nuclides extends React.Component<Props, State> {
+
+  public constructor (public props: any) {
+    super(props);
+    this.state = { isotopes: ParticleBuilderCached.buildNuclides() };
+  }
 
   public render () {
-    const tableRow = (Z: number, N: [number, number]) => {
-      const elements = []
-      for (let i = N[0]; i < N[1]; i++) {
-        elements.push(<td key={i}><NuclideListItem Z={Z} N={i}/></td>)
-      }
-      return elements;
-    }
-
-    const tableBody = () => {
-      const elements = [];
-      for (let i = 1, len = this.props.isotopes.length - 1; i <= len; i++) {
-        elements.push(<tr key={i}>
-          <td colSpan={this.props.isotopes[i][0] + 1}/>
-          {tableRow(i, [this.props.isotopes[i][0], this.props.isotopes[i][1]])}</tr>);
-      }
-      return elements;
-    }
+    const { isotopes } = this.state;
     return (
       <Layout title="Таблица нуклидов">
         <h1>Таблица нуклидов</h1>
         <p>Скроллить на среднюю кнопку</p>
-        <table>
-          <tbody>
-          {tableBody()}
-          </tbody>
-        </table>
+        <NuclideList nuclides={isotopes}/>
       </Layout>
     )
   }
-}
-
-export const getStaticProps: GetStaticProps = async () => {
-  return { props: { isotopes: ISOTOPES } }
 }

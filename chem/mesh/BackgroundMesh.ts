@@ -22,10 +22,6 @@ export default class BackgroundMesh extends THREE.Mesh {
     this.material.uniforms.uTime.value = performance.now() * this.options.timeScale;
   }
 
-  public dispose () {
-    if (this.geometry) this.geometry.dispose();
-  }
-
   public buildMaterial (): THREE.ShaderMaterial {
     return new THREE.ShaderMaterial({
       uniforms: {
