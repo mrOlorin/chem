@@ -3,29 +3,29 @@ import * as THREE from 'three';
 export interface MultiThreeScene {
   element: Element;
   scene: THREE.Scene;
-  dispose?: () => void;
   tick?: (time: number, deltaTime: number) => void;
 }
 
 export default class MultiThree {
   public camera: THREE.Camera;
   public scenes: { [key: string]: MultiThreeScene } = {};
-  public readonly visibleScenes: Array<MultiThreeScene> = [];
+  public readonly visibleScenes: { [id: string]: MultiThreeScene } = {};
   public canvas: HTMLCanvasElement;
   public renderer: THREE.WebGLRenderer;
   private doRender: boolean = false;
+  private intersectionObserver: IntersectionObserver;
 
   public constructor (canvas: HTMLCanvasElement) {
     if (!canvas) {
       throw new Error('Canvas required');
     }
+    canvas.style.position = 'absolute';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.zIndex = '-1';
     this.canvas = canvas;
-    this.canvas.style.position = 'absolute';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
-    this.canvas.style.zIndex = '-1';
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
       context: this.canvas.getContext('webgl2', { alpha: true, antialias: true }) as WebGLRenderingContext,
@@ -35,8 +35,23 @@ export default class MultiThree {
     this.renderer.setScissorTest(true);
     this.camera = new THREE.PerspectiveCamera(90, 1, 0.1, 100);
     this.camera.position.z = 1;
-    this.adjustCanvasAndCheckVisibility();
+    this.intersectionObserver = this.initIntersectionObserver();
     this.startRender();
+  }
+
+  private initIntersectionObserver (): IntersectionObserver {
+    return new IntersectionObserver(entries => entries.forEach((entry: IntersectionObserverEntry) => {
+      if (entry.isIntersecting) {
+        this.visibleScenes[entry.target.id] = this.scenes[entry.target.id];
+      } else {
+        delete this.visibleScenes[entry.target.id];
+      }
+      this.adjustCanvas();
+    }), {
+      root: null, // null == document's viewport
+      rootMargin: '0px',
+      threshold: 0.4
+    });
   }
 
   public addScene (multiThreeScene: MultiThreeScene) {
@@ -46,21 +61,19 @@ export default class MultiThree {
     const id = multiThreeScene.element.id;
     this.scenes[id] && this.removeScene(this.scenes[id]);
     this.scenes[id] = multiThreeScene;
-    if (this.renderer && this.isVisible(multiThreeScene.element)) {
-      this.visibleScenes.push(this.scenes[id]);
-      this.adjustCanvas();
-    }
+    this.intersectionObserver.observe(multiThreeScene.element);
   }
 
   public removeScene (multiThreeScene: MultiThreeScene) {
+    this.intersectionObserver.unobserve(multiThreeScene.element);
     this.scenes[multiThreeScene.element.id].scene.traverse(MultiThree.dispose);
     delete this.scenes[multiThreeScene.element.id];
   }
 
   public dispose (): void {
     this.stopRender();
+    this.intersectionObserver.disconnect();
     this.scenes = {};
-    this.visibleScenes.length = 0;
     requestAnimationFrame(() => {
       Object.keys(this.scenes).forEach(key => this.removeScene(this.scenes[key]));
       this.renderer.dispose();
@@ -95,7 +108,7 @@ export default class MultiThree {
     let rendererHeight: number;
     const animate = (): void => {
       rendererHeight = this.renderer.domElement.clientHeight;
-      for (let i = 0, len = this.visibleScenes.length; i < len; i++) {
+      for (const i of Object.keys(this.visibleScenes)) {
         rect = this.visibleScenes[i].element.getBoundingClientRect();
         y = rendererHeight - rect.bottom;
         this.renderer.setViewport(rect.left, y, rect.width, rect.height);
@@ -108,13 +121,13 @@ export default class MultiThree {
   }
 
   private addEventListeners () {
-    window.addEventListener('scroll', this.adjustCanvasAndCheckVisibility);
-    window.addEventListener('resize', this.adjustCanvasAndCheckVisibility);
+    window.addEventListener('scroll', this.adjustCanvas);
+    window.addEventListener('resize', this.adjustCanvas);
   }
 
   private removeEventListeners () {
-    window.removeEventListener('scroll', this.adjustCanvasAndCheckVisibility);
-    window.removeEventListener('resize', this.adjustCanvasAndCheckVisibility);
+    window.removeEventListener('scroll', this.adjustCanvas);
+    window.removeEventListener('resize', this.adjustCanvas);
   }
 
   private adjustCanvas = () => {
@@ -122,17 +135,4 @@ export default class MultiThree {
     this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight, false);
   }
 
-  private adjustCanvasAndCheckVisibility = () => {
-    this.adjustCanvas();
-    this.visibleScenes.length = 0;
-    for (const i in this.scenes) {
-      this.scenes[i] && this.isVisible(this.scenes[i].element) && this.visibleScenes.push(this.scenes[i]);
-    }
-  }
-
-  private isVisible (element: Element): boolean {
-    const rect = element.getBoundingClientRect();
-    return rect.bottom >= 0 && rect.top <= this.renderer.domElement.clientHeight &&
-      rect.right >= 0 && rect.left <= this.renderer.domElement.clientWidth;
-  }
 }

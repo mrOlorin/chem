@@ -27,7 +27,7 @@ export default class ElementListItem extends React.Component<Props, State> {
   }
 
   private static buildScene (atom: Atom, element: SVGSVGElement): MultiThreeScene {
-    const mesh = new ElectronCloudMesh({ electrons: atom.outerVacantElectrons, timeScale: 0.1 });
+    const mesh = new ElectronCloudMesh({ electrons: atom.electrons, timeScale: 0.1 });
     mesh.position.y -= 0.3;
     mesh.position.z -= 0.4;
     const scene = new THREE.Scene();
@@ -44,21 +44,20 @@ export default class ElementListItem extends React.Component<Props, State> {
     const { atom } = this.state;
     return <svg id={`element-${atom.Z}`}
                 width="80" height="80"
-                className='nuclide-list-item'
                 style={style}
                 ref={this.sceneRef}>
-      <text x="2" y="12" fontSize="0.6em">
+      <text y="9" fontSize="0.6em">
         <title>Массовое число</title>
         {atom.nucleus.A}
       </text>
-      <text x="2" y="23" fontSize="0.6em">
+      <text y="20" fontSize="0.6em">
         <title>Атомное число</title>
         {atom.nucleus.Z}
       </text>
-      <text x={10 + 3 * atom.nucleus.A.toString().length} y="20" fontSize="1.2em">
+      <text x={7 + 3 * atom.nucleus.A.toString().length} y="15" fontSize="1em">
         {atom.nucleus.name}
       </text>
-      <text textAnchor="end" x="78" y="12" fontSize="0.7em">
+      <text textAnchor="end" x="80" y="12" fontSize="0.8em">
         <title>{atom.electronConfiguration}</title>
         {atom.electronConfigurationShort}
       </text>

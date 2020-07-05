@@ -95,7 +95,4 @@ export default class Nucleus {
     return this.Z * magneticMoment.proton + this.N * magneticMoment.neutron;
   }
 
-  public toJSON () {
-    return { Z: this.Z }
-  }
 }

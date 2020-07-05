@@ -14,12 +14,12 @@ export default class OrbitalList extends React.Component<Props> {
     };
     const { subLevels } = this.props;
 
-    const electronsMapper = (electrons: Array<Electron>) =>
-      <div key={`${electrons[0].l}-${electrons[0].m}`} style={itemStyle}><OrbitalListItem electrons={electrons}/></div>;
-
-    const orbitalsMapper = (orbitals: Array<Array<Electron>>, i: number) =>
-      <div style={{ textAlign: 'center' }} key={i}>{orbitals.map(electronsMapper)}</div>;
-
-    return subLevels.map(orbitalsMapper);
+    return subLevels.map((orbitals: Array<Array<Electron>>, i: number) =>
+      <div style={{ textAlign: 'center' }} key={i}>
+        {orbitals.map((electrons: Array<Electron>) =>
+          <div key={`${electrons[0].l}-${electrons[0].m}`} style={itemStyle}>
+            <OrbitalListItem electrons={electrons}/>
+          </div>)}
+      </div>);
   }
 }

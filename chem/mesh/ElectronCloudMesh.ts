@@ -15,9 +15,12 @@ export default class ElectronCloudMesh extends THREE.Points {
     return ElectronCloudMesh.staticMaterial;
   }
 
-  public constructor (options: ElectronCloudMeshOptions) {
+  public constructor (options: Partial<ElectronCloudMeshOptions>) {
     super();
-    this.options = options;
+    this.options = {
+      timeScale: 0.1,
+      ...options
+    } as ElectronCloudMeshOptions;
     this.material = ElectronCloudMesh.material;
     this.geometry = this.buildGeometry();
     this.onBeforeRender = this.tick.bind(this);
@@ -52,7 +55,7 @@ export default class ElectronCloudMesh extends THREE.Points {
         uTime: { value: 1.0 },
         rayOrigin: { value: new THREE.Vector3(0, 0, 0) },
         rayDirection: { value: new THREE.Vector3(0, 0, 0) },
-        uPointSize: { value: 120 }
+        uPointSize: { value: 100 }
       },
       side: THREE.DoubleSide,
       blending: THREE.NormalBlending,
@@ -91,7 +94,7 @@ export default class ElectronCloudMesh extends THREE.Points {
       `,
       fragmentShader: `
         #define MAX_STEPS 64
-        #define PLANK_LENGTH .001
+        #define PLANK_LENGTH .01
         #define FOG_DIST 5.
         #define MAX_DIST FOG_DIST
         #define FOG_COLOR vec3(1.,1.,1.)
@@ -176,21 +179,13 @@ export default class ElectronCloudMesh extends THREE.Points {
         }
 
         float getDistance(vec3 p) {
-          //float backWall = 2.+ p.z;
-          //float cut = p.z;
-          //p.xz *= rotationMatrix(vElectron.x + vTime.w * .5);
-          //p.xy *= rotationMatrix(vElectron.x + vTime.w * .75);
-          //p.yz *= rotationMatrix(vElectron.x + vTime.w);
-
+          p.z += .1;
+          p.xy *= rotationMatrix(0.78539815);
           float sh = sphericalHarmonic(vElectron, p.zxy);
+          float cloudDistance = length(p) - sh * vElectron.a * 2.;
 
-          float cloudDistance = length(p) - abs(sh * (.5 * sin((vElectron.x) + vTime.z) + vElectron.a * 0.5));
-          if (vElectron.y > 0.) {
-            cloudDistance *= .6 - vElectron.y * .1;
-          }
-          return cloudDistance;
-          //return min(backWall,  cloudDistance);
-          //return max(cut,  cloudDistance);
+          float extraPrecision = .6 - vElectron.y * .1;
+          return cloudDistance * extraPrecision;
         }
 
         vec2 cExp(float x) {
@@ -200,18 +195,20 @@ export default class ElectronCloudMesh extends THREE.Points {
 
         void getMaterial(inout HitObject hitObject) {
           float sh = sphericalHarmonic(vElectron, hitObject.point);
-          hitObject.material.color = vec4(cExp(sh), vElectron.a, .75);
-          hitObject.material.diffuse = .6;
+          hitObject.material.color = vec4(cExp(sh), 2.* vElectron.a, 1.);
+          hitObject.material.diffuse = .4;
           hitObject.material.specular = .4;
-          hitObject.material.ambient = 0.;
+          hitObject.material.ambient = .2;
           hitObject.material.shininess = 1.;
-          hitObject.material.receiveShadows = 1.;
 
           vec3 lightDir = normalize(hitObject.point - lightPos);
           float diffuse = hitObject.material.diffuse * dot(hitObject.normal, lightDir);
           float specular = pow(max(0., hitObject.material.specular * dot(lightDir, reflect(hitObject.rayDirection, hitObject.normal))), hitObject.material.shininess);
 
-          hitObject.material.color.xyz = (hitObject.material.ambient + diffuse) * pow(hitObject.material.color.xyz, gammaCorrection) + specular;
+          hitObject.material.color.xyz = 
+            (hitObject.material.ambient + diffuse) 
+            * pow(hitObject.material.color.xyz, gammaCorrection)
+            + specular;
         }
         void rayMarch(inout HitObject obj) {
           float stepDistance;

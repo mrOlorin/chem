@@ -31,10 +31,8 @@ export default class OrbitalListItem extends React.Component<Props, State> {
   }
 
   private static buildScene (electrons: Array<Electron>, element: SVGSVGElement): MultiThreeScene {
-    const mesh = new ElectronCloudMesh({ electrons, timeScale: 1 });
-    mesh.options.timeScale *= 0.1;
     const scene = new THREE.Scene();
-    scene.add(mesh);
+    scene.add(new ElectronCloudMesh({ electrons }));
     return { element, scene };
   }
 

@@ -1,3 +1,4 @@
+import React from 'react'
 import Layout from '../components/Layout'
 
 const AboutPage = () => (
@@ -5,7 +6,7 @@ const AboutPage = () => (
     <div className="about">
       <h2>Disclaimer</h2>
       <p>
-        Содержит ошибки.
+        Эксперимент. Содержит ошибки.
       </p>
       <h2>Технические подробности</h2>
       <h3>Данные</h3>

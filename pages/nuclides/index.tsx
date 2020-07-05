@@ -4,7 +4,7 @@ import NuclideList from '../../components/NuclideList'
 import ParticleBuilderCached from '../../chem/ParticleBuilderCached'
 import Nucleus from '../../chem/paricles/Nucleus'
 
-type Props = void
+type Props = void;
 type State = {
   isotopes: Array<Nucleus>;
 }
