@@ -128,9 +128,8 @@ export default class ElectronCloudMesh extends THREE.Points {
           vec3 rayDirection;
         };
 
-        float sphericalHarmonic(in vec4 e, vec3 p)
-        {
-          // http://en.wikipedia.org/wiki/Table_of_spherical_harmonics#Real_spherical_harmonics
+        // http://en.wikipedia.org/wiki/Table_of_spherical_harmonics#Real_spherical_harmonics
+        float sphericalHarmonic(in vec4 e, vec3 p) {
           if (e.y == 0.) {
             return 0.28;
           }

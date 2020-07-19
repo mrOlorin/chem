@@ -113,4 +113,47 @@ export default class Atom {
     }
     console.table(result);
   }
+
+  public sphericalHarmonics (p: THREE.Vector3): number {
+    return this.electrons.reduce((sh, e: Electron) => sh * this.sphericalHarmonic[e.l][e.m](p), 1);
+  }
+
+  // http://en.wikipedia.org/wiki/Table_of_spherical_harmonics#Real_spherical_harmonics
+  private sphericalHarmonic: { [l: number]: { [m: number]: (p: THREE.Vector3) => number } } = {
+    0: {
+      0: () => 0.28
+    },
+    1: {
+      [-1]: p => 0.49 * (p.y / p.length()),
+      [0]: p => 0.49 * (p.z / p.length()),
+      [1]: p => 0.49 * (p.x / p.length())
+    },
+    2: {
+      [-2]: p => 1.09 * ((p.x * p.y) / (p.length() ** 2)),
+      [-1]: p => 1.09 * ((p.y * p.z) / (p.length() ** 2)),
+      [0]: p => 0.49 * 0.32 * ((-(p.x * p.x) - (p.y * p.y) + 2.0 * (p.z * p.z)) / (p.length() ** 2)),
+      [1]: p => 0.49 * ((p.z * p.x) / (p.length() ** 2)),
+      [2]: p => 0.49 * (((p.x * p.x) - (p.y * p.y)) / (p.length() ** 2))
+    },
+    3: {
+      [-3]: p => 0.59 * (((3.0 * p.x * p.x - p.y * p.y) * p.y) / (p.length() ** 3)),
+      [-2]: p => 2.89 * ((p.x * p.y * p.z) / (p.length() ** 3)),
+      [-1]: p => 0.46 * ((p.y * (4.0 * p.z * p.z - p.x * p.x - p.y * p.y)) / (p.length() ** 3)),
+      [0]: p => 0.37 * ((p.z * (2.0 * p.z * p.z - 3.0 * p.x * p.x - 3.0 * p.y * p.y)) / (p.length() ** 3)),
+      [1]: p => 0.46 * ((p.x * (4.0 * p.z * p.z - p.x * p.x - p.y * p.y)) / (p.length() ** 3)),
+      [2]: p => 1.45 * (((p.x * p.x - p.y * p.y) * p.z) / (p.length() ** 3)),
+      [3]: p => 0.59 * (((p.x * p.x - 3.0 * p.y * p.y) * p.x) / (p.length() ** 3))
+    },
+    4: {
+      [-4]: p => 2.50 * (((p.x * p.y) * (p.x * p.x - p.y * p.y)) / (p.length() ** 4)),
+      [-3]: p => 1.77 * (((3. * (p.x * p.x) - (p.y * p.y)) * p.y * p.z) / (p.length() ** 4)),
+      [-2]: p => 0.95 * (((p.x * p.y) * (7. * (p.z * p.z) - (p.length() ** 2))) / (p.length() ** 4)),
+      [-1]: p => 0.67 * (((p.y * p.z) * (7. * (p.z * p.z) - 3. * (p.length() ** 2))) / (p.length() ** 4)),
+      [0]: p => 0.11 * ((35. * (p.z * p.z * p.z * p.z) - 30. * (p.z * p.z) * (p.length() ** 2) + 3. * (p.length() ** 4)) / (p.length() ** 4)),
+      [1]: p => 0.67 * (((p.x * p.z) * (7. * p.z * p.z - 3. * (p.length() ** 2))) / (p.length() ** 4)),
+      [2]: p => 0.47 * (((p.x * p.x - p.y * p.y) * (7. * (p.z * p.z) - (p.length() ** 2))) / (p.length() ** 4)),
+      [3]: p => 1.77 * (((p.x * p.x - 3. * (p.y * p.y)) * p.x * p.z) / (p.length() ** 4)),
+      [4]: p => 0.63 * (((p.x * p.x) * (p.x * p.x - 3. * (p.y * p.y)) - (p.y * p.y) * (3. * (p.x * p.x) - p.y * p.y)) / (p.length() ** 4))
+    }
+  }
 }

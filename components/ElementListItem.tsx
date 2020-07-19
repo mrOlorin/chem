@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import React, { RefObject } from 'react'
-import { MultiThreeScene } from '../utils/MultiThree'
-import Atom from '../chem/paricles/Atom'
-import ElectronCloudMesh from '../chem/mesh/ElectronCloudMesh'
-import { MultiThreeContext } from './MultiThreeContext'
+import React, { RefObject } from 'react';
+import { MultiThreeScene } from '../utils/MultiThree';
+import Atom from '../chem/paricles/Atom';
+import ElectronCloudMesh from '../chem/mesh/ElectronCloudMesh';
+import { MultiThreeContext } from './MultiThreeContext';
 
 type Props = {
   atom: Atom,
@@ -27,7 +27,7 @@ export default class ElementListItem extends React.Component<Props, State> {
   }
 
   private static buildScene (atom: Atom, element: SVGSVGElement): MultiThreeScene {
-    const mesh = new ElectronCloudMesh({ electrons: atom.electrons, timeScale: 0.1 });
+    const mesh = new ElectronCloudMesh({ electrons: atom.outerVacantElectrons, timeScale: 0.1 });
     mesh.position.y -= 0.3;
     mesh.position.z -= 0.4;
     const scene = new THREE.Scene();
