@@ -2,6 +2,7 @@ import Nucleus from './Nucleus';
 import ELECTRON_ORBITALS from '../literals/electronOrbitals';
 import Electron, { QuantumNumbers } from './Electron';
 import Utils from '../../utils/Utils';
+import { c, e, electronMassKg, ħj, ε0 } from '../literals/constants'
 
 export type ElectronShell = Array<ElectronSHellSublevel>;
 
@@ -148,5 +149,21 @@ export default class Atom {
       [3]: p => 1.77 * (((p.x * p.x - 3. * (p.y * p.y)) * p.x * p.z) / (p.length() ** 4)),
       [4]: p => 0.63 * (((p.x * p.x) * (p.x * p.x - 3. * (p.y * p.y)) - (p.y * p.y) * (3. * (p.x * p.x) - p.y * p.y)) / (p.length() ** 4))
     }
+  }
+
+  public get R () {
+    return (1 / ((4 * Math.PI * ε0) ** 2)) * ((electronMassKg * (e ** 4)) / (4 * Math.PI * (ħj ** 3) * c));
+  }
+
+  public electronRadius (electron: Electron) {
+    return (4 * Math.PI * ε0) * ((ħj ** 2) / (electronMassKg * (e ** 2) * this.Z)) * (electron.n ** 2);
+  }
+
+  public electronVelocity (electron: Electron) {
+    return ((1 / (4 * Math.PI * ε0))) * ((this.Z * (e ** 2)) / (electron.n * ħj));
+  }
+
+  public electronEnergy (electron: Electron) {
+    return (1 / ((4 * Math.PI * ε0) ** 2)) * ((electronMassKg * (this.Z ** 2) * (e ** 4)) / (2 * Math.PI * (electron.n ** 2)));
   }
 }

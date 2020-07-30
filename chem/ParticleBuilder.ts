@@ -3,7 +3,8 @@ import QUARKS from './literals/quarks'
 import ISOTOPES from './literals/isotopes'
 import Quark from './paricles/Quark'
 import Nucleus from './paricles/Nucleus'
-import Atom, { Electron, ElectronShell, ElectronSHellSublevel } from './paricles/Atom'
+import Atom, { ElectronShell, ElectronSHellSublevel } from './paricles/Atom'
+import Electron from './paricles/Electron'
 
 export default class ParticleBuilder {
   protected static buildNucleon (quarks: Array<Quark>) {
@@ -63,7 +64,7 @@ export default class ParticleBuilder {
   public static buildElectronShellSublevel (n: number = 4, l: number = 0): ElectronSHellSublevel {
     const electrons: Array<[Electron, Electron]> = [];
     for (let m = -l; m <= l; m++) {
-      electrons.push([{ n, l, m, ms: 0.5 }, { n, l, m, ms: -0.5 }]);
+      electrons.push([new Electron({ n, l, m, ms: 0.5 }), new Electron({ n, l, m, ms: -0.5 })]);
     }
     return electrons;
   }

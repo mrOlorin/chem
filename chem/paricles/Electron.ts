@@ -1,4 +1,3 @@
-import { c, e, ε0, ħj, electronMassKg } from '../literals/constants'
 import Atom from './Atom'
 
 export type QuantumNumbers = {
@@ -13,9 +12,9 @@ export default class Electron implements QuantumNumbers {
   public l: number;
   public m: number;
   public ms: number;
-  public atom: Atom;
+  public atom?: Atom;
 
-  public constructor (props: QuantumNumbers, atom: Atom) {
+  public constructor (props: QuantumNumbers, atom?: Atom) {
     this.n = props.n;
     this.l = props.l;
     this.m = props.m;
@@ -25,18 +24,18 @@ export default class Electron implements QuantumNumbers {
 
   // Константа Ридберга
   public get R () {
-    return (1 / ((4 * Math.PI * ε0) ** 2)) * ((electronMassKg * (e ** 4)) / (4 * Math.PI * (ħj ** 3) * c));
+    return this.atom ? this.atom.R : 0;
   }
 
   public get rBohr () {
-    return (4 * Math.PI * ε0) * ((ħj ** 2) / (electronMassKg * (e ** 2) * this.atom.Z)) * (this.n ** 2);
+    return this.atom ? this.atom.electronRadius(this) : 0;
   }
 
   public get v () {
-    return ((1 / (4 * Math.PI * ε0))) * ((this.atom.Z * (e ** 2)) / (this.n * ħj));
+    return this.atom ? this.atom.electronVelocity(this) : 0;
   }
 
   public get energy () {
-    return (1 / ((4 * Math.PI * ε0) ** 2)) * ((electronMassKg * (this.atom.Z ** 2) * (e ** 4)) / (2 * Math.PI * (this.n ** 2)));
+    return this.atom ? this.atom.electronEnergy(this) : 0;
   }
 }
