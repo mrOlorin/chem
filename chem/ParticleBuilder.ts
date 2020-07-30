@@ -39,8 +39,7 @@ export default class ParticleBuilder {
   }
 
   public static buildAtom (z: number, n: number = z): Atom {
-    const nucleus = this.buildNucleus(z, n);
-    return new Atom(nucleus);
+    return new Atom(this.buildNucleus(z, n));
   }
 
   public static buildNuclides () {

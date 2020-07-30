@@ -24,7 +24,7 @@ export default class Layout extends React.Component<Props> {
             </Link>{' '}
             |{' '}
             <Link href="/orbitals">
-              <a>Орбитали</a>
+              <a>Сферические гармоники</a>
             </Link>{' '}
             |{' '}
             <Link href="/elements">

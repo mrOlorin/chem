@@ -1,18 +1,11 @@
-import Nucleus from './Nucleus'
-import ELECTRON_ORBITALS from '../literals/electronOrbitals'
-
-export type Electron = {
-  n: number; // главное; энергетический уровень | размер орбитали; 1..
-  l: number; // орбитальное; форма орбитали; 0–s, 1–p, 2–d, 3–f
-  m: number; // магнитное; ориентация орбитали; -l..l
-  ms: number; // спиновое; спин; -1/2 | 1/2
-}
+import Nucleus from './Nucleus';
+import ELECTRON_ORBITALS from '../literals/electronOrbitals';
+import Electron, { QuantumNumbers } from './Electron';
+import Utils from '../../utils/Utils';
 
 export type ElectronShell = Array<ElectronSHellSublevel>;
 
 export type ElectronSHellSublevel = Array<[Electron, Electron]>;
-
-const SUP = ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹', '¹⁰', '¹¹', '¹²', '¹³', '¹⁴', '¹⁵', '¹⁶', '¹⁷', '¹⁸', '¹⁹'];
 
 export default class Atom {
   public readonly nucleus: Nucleus;
@@ -21,9 +14,9 @@ export default class Atom {
 
   public constructor (nucleus: Nucleus) {
     this.nucleus = nucleus;
-    const electrons = Atom.electronGenerator();
+    const electrons = Atom.quantumNumbersGenerator();
     for (let i = 0; i < this.nucleus.Z; i++) {
-      const electron = electrons.next().value;
+      const electron = new Electron(electrons.next().value, this);
       this.electrons.push(electron);
       if (!this.orbitals[electron.n]) {
         this.orbitals[electron.n] = [];
@@ -72,7 +65,7 @@ export default class Atom {
   public get electronConfiguration (): string {
     return this.orbitals.map(
       (energySublevel: any, n: any) => energySublevel.map(
-        (count: any, l: any) => n + 'spdf'[l] + SUP[count]
+        (count: any, l: any) => n + 'spdf'[l] + Utils.superPower(count)
       ).join('')
     ).join('');
   }
@@ -81,12 +74,12 @@ export default class Atom {
     const outerLevel = this.outerLevel;
     return this.orbitals.map(
       (energySublevel: any, n: any) => energySublevel.map(
-        (count: any, l: any) => (count < 2 * (2 * l + 1) || n === outerLevel) ? (n + 'spdf'[l] + SUP[count]) : ''
+        (count: any, l: any) => (count < 2 * (2 * l + 1) || n === outerLevel) ? (n + 'spdf'[l] + Utils.superPower(count)) : ''
       ).join('')
     ).join('');
   }
 
-  public static * electronGenerator (): IterableIterator<Electron> {
+  public static * quantumNumbersGenerator (): IterableIterator<QuantumNumbers> {
     // TODO: Провал электрона мб?
     for (let x = 1, isEven = 0; ; x += isEven, isEven = 1 - isEven) {
       for (let n = x, l = x - (2 - isEven), ms = 0.5; l >= 0; n += +(ms < 0), l += -(ms < 0), ms = -ms) {
@@ -99,7 +92,7 @@ export default class Atom {
     const compare = (e1: Electron, e2: typeof ELECTRON_ORBITALS[0]) => {
       return e1.n === e2[0] && e1.l === e2[1] && e1.m === e2[2] && e1.ms === e2[3];
     };
-    const electrons = Atom.electronGenerator();
+    const electrons = Atom.quantumNumbersGenerator();
     const n = 118;
     const result = [];
     for (let i = 0; i < n; i++) {

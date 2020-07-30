@@ -1,9 +1,10 @@
 import * as THREE from 'three';
-import { Electron } from '../paricles/Atom'
+import Electron from '../paricles/Electron'
 
 interface ElectronCloudMeshOptions {
   electrons: Array<Electron>;
   timeScale: number;
+  size: number;
 }
 
 export default class ElectronCloudMesh extends THREE.Points {
@@ -14,6 +15,7 @@ export default class ElectronCloudMesh extends THREE.Points {
     super();
     this.options = {
       timeScale: 0.1,
+      size: 100,
       ...options
     } as ElectronCloudMeshOptions;
     this.timeShift = this.options.electrons.length * 10;
@@ -81,7 +83,7 @@ export default class ElectronCloudMesh extends THREE.Points {
         uTime: { value: 1.0 },
         rayOrigin: { value: new THREE.Vector3(0, 0, 0) },
         rayDirection: { value: new THREE.Vector3(0, 0, 0) },
-        uPointSize: { value: 100 }
+        uPointSize: { value: this.options.size }
       },
       side: THREE.DoubleSide,
       blending: THREE.NormalBlending,
@@ -114,18 +116,18 @@ export default class ElectronCloudMesh extends THREE.Points {
           vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
           gl_Position = projectionMatrix * mvPosition;
           gl_PointSize = uPointSize / -mvPosition.z;
-          lightPos = vec3(-1., -2., -4.);
+          lightPos = vec3(1., 2., -4.);
           vTime = .1 * vec4(uTime, uTime * .5, uTime * .25, uTime * .125);
         }
       `,
       fragmentShader: `
         #define MAX_STEPS 64
-        #define PLANK_LENGTH .01
+        #define MIN_DIST .01
         #define FOG_DIST 5.
         #define MAX_DIST FOG_DIST
         #define FOG_COLOR vec3(1.,1.,1.)
-        const vec2 swizzleStep = vec2(PLANK_LENGTH, 0);
-        const vec3 gammaCorrection = vec3(1.0 / 2.2);
+        #define swizzleStep vec2(MIN_DIST, 0)
+        #define gammaCorrection vec3(0.45454545454545453)
 
         uniform float uTime;
         uniform vec3 rayOrigin;
@@ -159,8 +161,23 @@ export default class ElectronCloudMesh extends THREE.Points {
           p *= mat2(cs.x, -cs.y, cs.y, cs.x);
         }
 
+        float opSmoothUnion( float d1, float d2, float k ) {
+            float h = clamp( 0.5 + 0.5*(d2-d1)/k, 0.0, 1.0 );
+            return mix( d2, d1, h ) - k*h*(1.0-h); }
+
+        float opSmoothSubtraction( float d1, float d2, float k ) {
+            float h = clamp( 0.5 - 0.5*(d2+d1)/k, 0.0, 1.0 );
+            return mix( d2, -d1, h ) + k*h*(1.0-h); }
+
+        float opSmoothIntersection( float d1, float d2, float k ) {
+            float h = clamp( 0.5 - 0.5*(d2-d1)/k, 0.0, 1.0 );
+            return mix( d2, d1, h ) + k*h*(1.0-h); }
+        float smoothMix(float a, float b, float x) {
+          float t = x*x*(3.0 - 2.0*x);
+          return mix(a, b, t);
+        }
         float getDistance(vec3 p) {
-          p.z += 3.5;
+          p.z += 3.7;
           rotate(p.yz, vTime.w);
           rotate(p.xz, vTime.z);
           rotate(p.xy, vTime.w);
@@ -199,11 +216,11 @@ export default class ElectronCloudMesh extends THREE.Points {
         }
         void rayMarch(inout HitObject obj) {
           float stepDistance;
-          obj.distance = PLANK_LENGTH;
+          obj.distance = MIN_DIST;
           for (int i = 0; i < MAX_STEPS; i++) {
             stepDistance = getDistance(obj.rayOrigin + obj.rayDirection * obj.distance);
             obj.distance += stepDistance;
-            if (stepDistance < PLANK_LENGTH || obj.distance >= FOG_DIST) {
+            if (stepDistance < MIN_DIST || obj.distance >= FOG_DIST) {
               break;
             }
           }

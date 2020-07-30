@@ -7,7 +7,7 @@ import ElementList from '../../components/ElementList'
 type State = {
   atoms: Array<Atom>;
 }
-export default class Elements extends React.Component<any, State> {
+export default class extends React.Component<any, State> {
   public constructor (public props: any, public context: any) {
     super(props);
     this.state = { atoms: ParticleBuilderCached.buildAtoms() };

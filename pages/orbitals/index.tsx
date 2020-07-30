@@ -17,8 +17,8 @@ export default class Orbitals extends React.Component<void, State> {
   public render () {
     const { subLevels } = this.state;
     return (
-      <Layout title="Орбитали">
-        <h1>Орбитали</h1>
+      <Layout title="Сферические гармоники">
+        <h1>Сферические гармоники</h1>
         <OrbitalList subLevels={subLevels}/>
       </Layout>
     )

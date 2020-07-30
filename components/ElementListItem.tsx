@@ -4,6 +4,7 @@ import { MultiThreeScene } from '../utils/MultiThree';
 import Atom from '../chem/paricles/Atom';
 import ElectronCloudMesh from '../chem/mesh/ElectronCloudMesh';
 import { MultiThreeContext } from './MultiThreeContext';
+import Link from 'next/link'
 
 type Props = {
   atom: Atom,
@@ -29,7 +30,7 @@ export default class ElementListItem extends React.Component<Props, State> {
   private static buildScene (atom: Atom, element: SVGSVGElement): MultiThreeScene {
     const mesh = new ElectronCloudMesh({ electrons: atom.outerVacantElectrons, timeScale: 0.1 });
     mesh.position.y -= 0.3;
-    mesh.position.z -= 0.4;
+    mesh.position.z -= 0.2;
     const scene = new THREE.Scene();
     scene.add(mesh);
     return { element, scene };
@@ -42,25 +43,29 @@ export default class ElementListItem extends React.Component<Props, State> {
       border: '1px dashed #2c3e50'
     };
     const { atom } = this.state;
-    return <svg id={`element-${atom.Z}`}
-                width="80" height="80"
-                style={style}
-                ref={this.sceneRef}>
-      <text y="9" fontSize="0.6em">
-        <title>Массовое число</title>
-        {atom.nucleus.A}
-      </text>
-      <text y="20" fontSize="0.6em">
-        <title>Атомное число</title>
-        {atom.nucleus.Z}
-      </text>
-      <text x={7 + 3 * atom.nucleus.A.toString().length} y="15" fontSize="1em">
-        {atom.nucleus.name}
-      </text>
-      <text textAnchor="end" x="80" y="12" fontSize="0.8em">
-        <title>{atom.electronConfiguration}</title>
-        {atom.electronConfigurationShort}
-      </text>
-    </svg>
+    return <Link href="/elements/[Z]" as={`/elements/${atom.nucleus.Z}`}>
+      <a>
+        <svg id={`element-${atom.Z}`}
+             width="80" height="80"
+             style={style}
+             ref={this.sceneRef}>
+          <text y="9" fontSize="0.6em">
+            <title>Массовое число</title>
+            {atom.nucleus.A}
+          </text>
+          <text y="20" fontSize="0.6em">
+            <title>Атомное число</title>
+            {atom.nucleus.Z}
+          </text>
+          <text x={7 + 3 * atom.nucleus.A.toString().length} y="15" fontSize="1em">
+            {atom.nucleus.name}
+          </text>
+          <text textAnchor="end" x="80" y="12" fontSize="0.8em">
+            <title>{atom.electronConfiguration}</title>
+            {atom.electronConfigurationShort}
+          </text>
+        </svg>
+      </a>
+    </Link>
   }
 }

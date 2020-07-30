@@ -1,5 +1,6 @@
 //https://ru.wikipedia.org/wiki/Список_химических_элементов_по_электронной_конфигурации
 const ELECTRON_CONFIGURATIONS: Array<[string, string, Array<number>]> = [
+  ['0s0', '0s0', [0]],
   ['1s¹', '1s¹', [1]],
   ['1s²', '1s²', [2]],
   ['1s²2s¹', '1s²2s¹', [2, 1]],
