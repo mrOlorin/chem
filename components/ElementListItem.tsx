@@ -1,10 +1,11 @@
 import * as THREE from 'three';
-import React, { RefObject } from 'react';
+import React, { CSSProperties, RefObject } from 'react';
 import { MultiThreeScene } from '../utils/MultiThree';
 import Atom from '../chem/paricles/Atom';
 import ElectronCloudMesh from '../chem/mesh/ElectronCloudMesh';
 import { MultiThreeContext } from './MultiThreeContext';
-import Link from 'next/link'
+import Link from 'next/link';
+import ELECTRON_CONFIGURATIONS from '../chem/literals/electronConfigurations';
 
 type Props = {
   atom: Atom,
@@ -28,25 +29,25 @@ export default class ElementListItem extends React.Component<Props, State> {
   }
 
   private static buildScene (atom: Atom, element: SVGSVGElement): MultiThreeScene {
-    const mesh = new ElectronCloudMesh({ electrons: atom.outerVacantElectrons, timeScale: 0.1 });
-    mesh.position.y -= 0.3;
-    mesh.position.z -= 0.2;
+    const mesh = new ElectronCloudMesh({
+      electrons: atom.outerVacantElectrons,
+      timeShift: atom.maxN * atom.Z,
+      size: 70
+    });
+    mesh.position.y += 0.1;
     const scene = new THREE.Scene();
     scene.add(mesh);
     return { element, scene };
   }
 
   public render () {
-    const style = {
-      padding: '2px',
-      marginRight: '4px',
-      border: '1px dashed #2c3e50'
+    const style: CSSProperties = {
     };
     const { atom } = this.state;
     return <Link href="/elements/[Z]" as={`/elements/${atom.nucleus.Z}`}>
       <a>
         <svg id={`element-${atom.Z}`}
-             width="80" height="80"
+             width="50" height="85"
              style={style}
              ref={this.sceneRef}>
           <text y="9" fontSize="0.6em">
@@ -57,11 +58,12 @@ export default class ElementListItem extends React.Component<Props, State> {
             <title>Атомное число</title>
             {atom.nucleus.Z}
           </text>
-          <text x={7 + 3 * atom.nucleus.A.toString().length} y="15" fontSize="1em">
+          <text x={7 + 3 * atom.nucleus.A.toString().length} y="15" fontWeight="bold" fontSize="1em">
             {atom.nucleus.name}
           </text>
-          <text textAnchor="end" x="80" y="12" fontSize="0.8em">
-            <title>{atom.electronConfiguration}</title>
+          <text y="70" x="10" fontStretch="ultra-expanded" fontSize="0.8em">
+            {(!ELECTRON_CONFIGURATIONS[atom.Z] || (ELECTRON_CONFIGURATIONS[atom.Z][1] !== atom.electronConfiguration)) &&
+            '!'}
             {atom.electronConfigurationShort}
           </text>
         </svg>

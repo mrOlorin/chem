@@ -1,6 +1,5 @@
 import { NucleonDistribution } from './NucleonDistribution';
-import Nucleus from '../../paricles/Nucleus'
-import { r0 } from '../../literals/constants'
+import Nucleus from '../../paricles/Nucleus';
 
 export default (nucleus: Nucleus, scale: number = 1): NucleonDistribution => {
   const sphericalCurve = (a: number, t: number): [number, number, number] => {
@@ -17,7 +16,7 @@ export default (nucleus: Nucleus, scale: number = 1): NucleonDistribution => {
   let aSign = 1;
   let offset = 0;
   let pos: [number, number, number];
-  scale *= nucleus.R / r0;
+  scale *= nucleus.R / 1.25e-15;
   for (let i = 0; i < nucleus.Z; i++) {
     aSign = -aSign;
     pos = sphericalCurve(aSign / nucleus.Z, i);

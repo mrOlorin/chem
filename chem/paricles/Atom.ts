@@ -2,7 +2,7 @@ import Nucleus from './Nucleus';
 import ELECTRON_ORBITALS from '../literals/electronOrbitals';
 import Electron, { QuantumNumbers } from './Electron';
 import Utils from '../../utils/Utils';
-import { c, e, electronMassKg, ħj, ε0 } from '../literals/constants'
+import { c, e, FOUR_PI_ε0, kg, ħj } from '../literals/constants'
 
 export type ElectronShell = Array<ElectronSHellSublevel>;
 
@@ -11,7 +11,7 @@ export type ElectronSHellSublevel = Array<[Electron, Electron]>;
 export default class Atom {
   public readonly nucleus: Nucleus;
   public readonly electrons: Array<Electron> = [];
-  public readonly orbitals: Array<Array<number>> = [];
+  public readonly energyLevels: Array<Array<number>> = [];
 
   public constructor (nucleus: Nucleus) {
     this.nucleus = nucleus;
@@ -19,15 +19,21 @@ export default class Atom {
     for (let i = 0; i < this.nucleus.Z; i++) {
       const electron = new Electron(electrons.next().value, this);
       this.electrons.push(electron);
-      if (!this.orbitals[electron.n]) {
-        this.orbitals[electron.n] = [];
+      if (!this.energyLevels[electron.n]) {
+        this.energyLevels[electron.n] = [];
       }
-      this.orbitals[electron.n][electron.l] = (this.orbitals[electron.n][electron.l] || 0) + 1;
+      this.energyLevels[electron.n][electron.l] = (this.energyLevels[electron.n][electron.l] || 0) + 1;
     }
   }
 
+  public static byEnergyLevel = (acc: Array<Array<Atom>>, atom: Atom) => {
+    if (!acc[atom.maxN]) acc[atom.maxN] = [];
+    acc[atom.maxN].push(atom);
+    return acc;
+  };
+
   public get outerElectrons (): Array<Electron> {
-    const outerLevel = this.outerLevel;
+    const outerLevel = this.maxN;
     const outerVacantLevel = this.outerVacantLevel;
     return this.electrons.filter(e => e.n === outerLevel || e.n > outerVacantLevel);
   };
@@ -41,14 +47,25 @@ export default class Atom {
     return this.nucleus.mass + this.electrons.length * 0.51099895; // МэВ
   }
 
-  public get outerLevel (): number {
-    const reducer = (maxN: number, electron: Electron) => Math.max(electron.n, maxN);
-    return this.electrons.reduce(reducer, this.electrons[0].n);
+  public get maxN (): number {
+    return this.electrons.reduce((maxN: number, electron: Electron) => Math.max(electron.n, maxN), this.electrons[0].n);
   }
 
+  public shell (n: number) {
+    return this.electrons.filter(e => e.n === n);
+  }
+
+  public subShell (n: number, l: number) {
+    return this.electrons.filter(e => e.n === n && e.l === l);
+  }
+
+  public electronsOnShell = (n: number) => this.shell(n).length;
+  public static maxElectronsOnShell = (n: number) => 2 * (n ** 2);
+  public static maxElectronsOnSubShell = (l: number) => 2 * (2 * l + 1);
+
   public get outerVacantLevel (): number {
-    const sumReducer = (accumulator: number, currentValue: number) => accumulator + currentValue;
-    const reducer = (maxN: number, electron: Electron) => this.orbitals[electron.n].reduce(sumReducer) <= 2 * (2 * electron.l + 1) ? Math.max(electron.n, maxN) : electron.n;
+    const reducer = (maxN: number, electron: Electron) =>
+      this.electronsOnShell(electron.n) <= Atom.maxElectronsOnSubShell(electron.l) ? Math.max(electron.n, maxN) : electron.n;
     return this.electrons.reduce(reducer, this.electrons[0].n);
   }
 
@@ -64,18 +81,35 @@ export default class Atom {
   }
 
   public get electronConfiguration (): string {
-    return this.orbitals.map(
+    return this.energyLevels.map(
       (energySublevel: any, n: any) => energySublevel.map(
         (count: any, l: any) => n + 'spdf'[l] + Utils.superPower(count)
       ).join('')
     ).join('');
   }
 
+  public get electronConfigurationTex (): string {
+    return this.energyLevels.map(
+      (energySublevel: any, n: any) => energySublevel.map(
+        (count: any, l: any) => n + 'spdf'[l] + ` ^ ${count}`
+      ).join('')
+    ).join('');
+  }
+
   public get electronConfigurationShort (): string {
-    const outerLevel = this.outerLevel;
-    return this.orbitals.map(
+    const outerLevel = this.maxN;
+    return this.energyLevels.map(
       (energySublevel: any, n: any) => energySublevel.map(
         (count: any, l: any) => (count < 2 * (2 * l + 1) || n === outerLevel) ? (n + 'spdf'[l] + Utils.superPower(count)) : ''
+      ).join('')
+    ).join('');
+  }
+
+  public get electronConfigurationShortTex (): string {
+    const outerLevel = this.maxN;
+    return this.energyLevels.map(
+      (energySublevel: any, n: any) => energySublevel.map(
+        (count: any, l: any) => (count < 2 * (2 * l + 1) || n === outerLevel) ? (n + 'spdf'[l] + ` ^ ${count}`) : ''
       ).join('')
     ).join('');
   }
@@ -108,62 +142,19 @@ export default class Atom {
     console.table(result);
   }
 
-  public sphericalHarmonics (p: THREE.Vector3): number {
-    return this.electrons.reduce((sh, e: Electron) => sh * this.sphericalHarmonic[e.l][e.m](p), 1);
-  }
-
-  // http://en.wikipedia.org/wiki/Table_of_spherical_harmonics#Real_spherical_harmonics
-  private sphericalHarmonic: { [l: number]: { [m: number]: (p: THREE.Vector3) => number } } = {
-    0: {
-      0: () => 0.28
-    },
-    1: {
-      [-1]: p => 0.49 * (p.y / p.length()),
-      [0]: p => 0.49 * (p.z / p.length()),
-      [1]: p => 0.49 * (p.x / p.length())
-    },
-    2: {
-      [-2]: p => 1.09 * ((p.x * p.y) / (p.length() ** 2)),
-      [-1]: p => 1.09 * ((p.y * p.z) / (p.length() ** 2)),
-      [0]: p => 0.49 * 0.32 * ((-(p.x * p.x) - (p.y * p.y) + 2.0 * (p.z * p.z)) / (p.length() ** 2)),
-      [1]: p => 0.49 * ((p.z * p.x) / (p.length() ** 2)),
-      [2]: p => 0.49 * (((p.x * p.x) - (p.y * p.y)) / (p.length() ** 2))
-    },
-    3: {
-      [-3]: p => 0.59 * (((3.0 * p.x * p.x - p.y * p.y) * p.y) / (p.length() ** 3)),
-      [-2]: p => 2.89 * ((p.x * p.y * p.z) / (p.length() ** 3)),
-      [-1]: p => 0.46 * ((p.y * (4.0 * p.z * p.z - p.x * p.x - p.y * p.y)) / (p.length() ** 3)),
-      [0]: p => 0.37 * ((p.z * (2.0 * p.z * p.z - 3.0 * p.x * p.x - 3.0 * p.y * p.y)) / (p.length() ** 3)),
-      [1]: p => 0.46 * ((p.x * (4.0 * p.z * p.z - p.x * p.x - p.y * p.y)) / (p.length() ** 3)),
-      [2]: p => 1.45 * (((p.x * p.x - p.y * p.y) * p.z) / (p.length() ** 3)),
-      [3]: p => 0.59 * (((p.x * p.x - 3.0 * p.y * p.y) * p.x) / (p.length() ** 3))
-    },
-    4: {
-      [-4]: p => 2.50 * (((p.x * p.y) * (p.x * p.x - p.y * p.y)) / (p.length() ** 4)),
-      [-3]: p => 1.77 * (((3. * (p.x * p.x) - (p.y * p.y)) * p.y * p.z) / (p.length() ** 4)),
-      [-2]: p => 0.95 * (((p.x * p.y) * (7. * (p.z * p.z) - (p.length() ** 2))) / (p.length() ** 4)),
-      [-1]: p => 0.67 * (((p.y * p.z) * (7. * (p.z * p.z) - 3. * (p.length() ** 2))) / (p.length() ** 4)),
-      [0]: p => 0.11 * ((35. * (p.z * p.z * p.z * p.z) - 30. * (p.z * p.z) * (p.length() ** 2) + 3. * (p.length() ** 4)) / (p.length() ** 4)),
-      [1]: p => 0.67 * (((p.x * p.z) * (7. * p.z * p.z - 3. * (p.length() ** 2))) / (p.length() ** 4)),
-      [2]: p => 0.47 * (((p.x * p.x - p.y * p.y) * (7. * (p.z * p.z) - (p.length() ** 2))) / (p.length() ** 4)),
-      [3]: p => 1.77 * (((p.x * p.x - 3. * (p.y * p.y)) * p.x * p.z) / (p.length() ** 4)),
-      [4]: p => 0.63 * (((p.x * p.x) * (p.x * p.x - 3. * (p.y * p.y)) - (p.y * p.y) * (3. * (p.x * p.x) - p.y * p.y)) / (p.length() ** 4))
-    }
-  }
-
   public get R () {
-    return (1 / ((4 * Math.PI * ε0) ** 2)) * ((electronMassKg * (e ** 4)) / (4 * Math.PI * (ħj ** 3) * c));
+    return (1 / (FOUR_PI_ε0 ** 2)) * ((Electron.mass * kg * (e ** 4)) / (4 * Math.PI * (ħj ** 3) * c));
   }
 
-  public electronRadius (electron: Electron) {
-    return (4 * Math.PI * ε0) * ((ħj ** 2) / (electronMassKg * (e ** 2) * this.Z)) * (electron.n ** 2);
+  public electronRadiusOnLevel (n: number) {
+    return FOUR_PI_ε0 * ((ħj ** 2) / (Electron.mass * kg * (e ** 2) * this.Z)) * (n ** 2);
   }
 
-  public electronVelocity (electron: Electron) {
-    return ((1 / (4 * Math.PI * ε0))) * ((this.Z * (e ** 2)) / (electron.n * ħj));
+  public electronVelocityOnLevel (n: number) {
+    return ((1 / FOUR_PI_ε0)) * ((this.Z * (e ** 2)) / (n * ħj));
   }
 
-  public electronEnergy (electron: Electron) {
-    return (1 / ((4 * Math.PI * ε0) ** 2)) * ((electronMassKg * (this.Z ** 2) * (e ** 4)) / (2 * Math.PI * (electron.n ** 2)));
+  public energyOnLevel (n: number) {
+    return (1 / (FOUR_PI_ε0 ** 2)) * ((Electron.mass * kg * (this.Z ** 2) * (e ** 4)) / (2 * Math.PI * (n ** 2)));
   }
 }

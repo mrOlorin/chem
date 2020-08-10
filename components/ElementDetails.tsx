@@ -4,10 +4,13 @@ import { MultiThreeScene } from '../utils/MultiThree';
 import Atom from '../chem/paricles/Atom';
 import ElectronCloudMesh from '../chem/mesh/ElectronCloudMesh';
 import { MultiThreeContext } from './MultiThreeContext';
-import ELECTRON_CONFIGURATIONS from '../chem/literals/electronConfigurations'
-import Electron from '../chem/paricles/Electron'
-import Utils from '../utils/Utils'
-import { e } from '../chem/literals/constants'
+import ELECTRON_CONFIGURATIONS from '../chem/literals/electronConfigurations';
+import Electron from '../chem/paricles/Electron';
+import Utils from '../utils/Utils';
+import { e } from '../chem/literals/constants';
+// @ts-ignore
+import { InlineMath } from 'react-katex';
+import Nucleus from '../chem/paricles/Nucleus';
 
 type Props = {
   atom: Atom,
@@ -33,7 +36,7 @@ export default class ElementDetails extends React.Component<Props, State> {
   private static buildScene (atom: Atom, element: HTMLElement): MultiThreeScene {
     const mesh = new ElectronCloudMesh({
       electrons: atom.outerVacantElectrons,
-      timeScale: 0.05,
+      timeScale: 0.005,
       size: 800
     });
     const scene = new THREE.Scene();
@@ -43,54 +46,147 @@ export default class ElementDetails extends React.Component<Props, State> {
 
   public render () {
     const { atom } = this.state;
+    const { av, as, ac, at, ap } = atom.nucleus.energyCoefficients;
     return <section>
       <h1>{atom.nucleus.name}</h1>
       <dl>
-        <dt>Номер</dt>
-        <dd><code>{atom.nucleus.Z}</code></dd>
+        <dt>Номер в таблице</dt>
+        <dd>
+          <InlineMath math={'' + atom.nucleus.Z}/>
+          <details>
+            <InlineMath math={'Z = ' + atom.nucleus.Z}/>
+          </details>
+        </dd>
       </dl>
+
       <h3>Ядро</h3>
       <dl>
         <dt>Число протонов</dt>
         <dd>
-          <code>
-            <var>Z</var> = {atom.nucleus.Z}
-          </code>&nbsp;
+          <InlineMath math={`Z = ${atom.nucleus.Z}`}/>&nbsp;
           <meter value={atom.nucleus.Z} min="0" max={atom.nucleus.A}/>
         </dd>
+
         <dt>Число нейтронов</dt>
         <dd>
-          <code>
-            <var>N</var> = {atom.nucleus.N}
-          </code>&nbsp;
+          <InlineMath math={`N = ${atom.nucleus.N}`}/>&nbsp;
           <meter value={atom.nucleus.N} min="0" max={atom.nucleus.A}/>
         </dd>
+
         <dt>Массовое число</dt>
         <dd>
-          <code><var>A</var> = <var>Z</var> + <var>N</var> = {atom.nucleus.A}</code>
+          <InlineMath math={`A = ${atom.nucleus.A}`}/>
+          <details>
+            <div>
+              <InlineMath math={`A = Z + N`}/>
+            </div>
+            <div>
+              <InlineMath math={`Z = ${atom.nucleus.Z}, N = ${atom.nucleus.N}`}/>
+            </div>
+            <div>
+              <InlineMath math={`A = ${atom.nucleus.Z} + ${atom.nucleus.N} = ${atom.nucleus.A}`}/>
+            </div>
+          </details>
         </dd>
+
         <dt>Заряд</dt>
-        <dd><code><var>{Utils.roundSuperPower(atom.nucleus.Z * -e)}</var>{atom.nucleus.Z > 0 && 'Кл'}</code></dd>
+        <dd>
+          <InlineMath
+            math={`Q = ` + String.raw`${Utils.roundSuperPowerTex(atom.nucleus.electricCharge * e)} kl`}/>
+          <details>
+            <div>
+              <InlineMath
+                math={`Q = Z * e`}/>
+            </div>
+            <div>
+              <InlineMath
+                math={`Z = ${atom.nucleus.Z}, e = ${Utils.roundSuperPowerTex(e)} kl`}/>
+            </div>
+            <div>
+              <InlineMath
+                math={`Q = ${String.raw`${atom.nucleus.Z} * ${Utils.roundSuperPowerTex(e)} = ${Utils.roundSuperPowerTex(atom.nucleus.Z * e)} kl`}`}/>
+            </div>
+          </details>
+        </dd>
+
+        <dt>Энергия связи</dt>
+        <dd>
+          <InlineMath math={`Ew ≈ ${atom.nucleus.bindingEnergy.toPrecision(5)}MeV`}/>
+          <details>
+            <a href="https://ru.wikipedia.org/wiki/Капельная_модель_ядра#Вывод_формулы_Вайцзеккера"
+               target="_blank">Формула Вайцзекера</a>:&nbsp;
+            <div>
+              <InlineMath math={`Ew ≈ 
+                av * A - 
+                as * A ^ \\frac{2}{3} - 
+                ac * \\frac{Z ^ 2}{A ^ \\frac{1}{3}} - 
+                at * \\frac{(A - 2 * Z) ^ 2}{A} - 
+                ap * \\frac{\\delta}{A ^ \\frac{3}{4}}
+                `}/>
+            </div>
+            <div>
+              <InlineMath math={`
+                av = ${av},
+                as = ${as},
+                ac = ${ac},
+                at = ${at},
+                ap = ${ap},
+                A = ${atom.nucleus.A},
+                Z = ${atom.nucleus.Z},
+                \\delta = ${atom.nucleus.parity}`}/>
+            </div>
+            <div>
+              <InlineMath math={`Ew ≈ 
+                ${av} * ${atom.nucleus.A} - 
+                ${as} * ${atom.nucleus.A} ^ \\frac{2}{3} - 
+                ${ac} * \\frac{${atom.nucleus.Z}^2}{${atom.nucleus.A} ^ \\frac{1}{3}} -
+                ${at} * \\frac{(${atom.nucleus.A} - 2 * ${atom.nucleus.Z}) ^ 2}{${atom.nucleus.A}} -
+                ${ap} * \\frac{${atom.nucleus.parity}}{${atom.nucleus.A} ^ \\frac{3}{4}} ≈ 
+                ${atom.nucleus.bindingEnergy.toPrecision(5)} MeV`}/>
+            </div>
+          </details>
+        </dd>
+
         <dt>Радиус</dt>
         <dd>
-          <code>
-            <var>R</var> ≈ <span
-            title="0.00000000000000123"><var>r</var><sub>0</sub></span> * {atom.nucleus.A}<sup>⅓</sup> = {Utils.roundSuperPower(atom.nucleus.R)}м</code>
+          <InlineMath math={`R ≈ ${Utils.roundSuperPowerTex(atom.nucleus.R)} m`}/>
+          <details>
+            <div>
+              <InlineMath math={`R ≈ r_{0} * A ^ \\frac{1}{3}`}/>
+            </div>
+            <div>
+              <InlineMath math={`r_{0} = ${Utils.roundSuperPowerTex(Nucleus.r0)}m, A = ${atom.nucleus.A}`}/>
+            </div>
+            <div>
+              <InlineMath
+                math={`R ≈ ${Utils.roundSuperPowerTex(Nucleus.r0)} * ${atom.nucleus.A} ^ \\frac{1}{3} ≈ ${Utils.roundSuperPowerTex(atom.nucleus.R)}m`}/>
+            </div>
+          </details>
         </dd>
       </dl>
+
       <h3>Оболочка</h3>
       <dt>Число электронов</dt>
-      <dd><code>{atom.electrons.length}</code></dd>
-      <dt>Заряд</dt>
-      <dd><code><var>{Utils.roundSuperPower(atom.electrons.length * e)}</var>{atom.electrons.length > 0 && 'Кл'}</code></dd>
+      <dd>
+        <InlineMath math={'' + atom.electrons.length}/>
+        <details>
+          <InlineMath math={'Z = ' + atom.nucleus.Z}/>
+        </details>
+      </dd>
+
       <dt>Электронная конфигурация</dt>
       <dd>
-        <code>
-          {atom.electronConfiguration}
-          {(ELECTRON_CONFIGURATIONS[atom.Z][1] !== atom.electronConfiguration) &&
-          <span title={'Правильно — ' + ELECTRON_CONFIGURATIONS[atom.Z][1]}> (не правильно)</span>}
-        </code>
+        <InlineMath math={atom.electronConfigurationShortTex}/>
+        {(!ELECTRON_CONFIGURATIONS[atom.Z] || (ELECTRON_CONFIGURATIONS[atom.Z][1] !== atom.electronConfiguration)) &&
+        <span
+            title={'Правильно — ' + (ELECTRON_CONFIGURATIONS[atom.Z] ? ELECTRON_CONFIGURATIONS[atom.Z][1] : 'хз как')}>
+            (не правильно)
+        </span>}
+        <details>
+          <InlineMath math={atom.electronConfigurationTex}/>
+        </details>
       </dd>
+
       <dt>Электроны</dt>
       <dd>
         <table style={{ textAlign: 'center' }}>

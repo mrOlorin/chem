@@ -17,4 +17,17 @@ export default class Utils {
     return rounded + ' * 10' + Utils.superPower(power);
   }
 
+  public static roundSuperPowerTex = (n: number, precision: number = 3): string => {
+    let power = Math.floor(Math.log10(Math.abs(n)));
+    const precisionPower = 10 ** precision;
+    const rounded = Math.round((n * 10 ** -power + Number.EPSILON) * precisionPower) / precisionPower;
+    return rounded + (power === 0 ? '' : ` * 10 ^ {${power}}`);
+  }
+
+  public static factorial(n: number, sign: 1 | -1 = 1): number {
+    if (n < 0) {
+      return Utils.factorial(-n, -1);
+    }
+    return n ? n * sign * Utils.factorial(n - 1) : 1;
+  }
 }

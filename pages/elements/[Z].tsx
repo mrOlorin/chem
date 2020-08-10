@@ -2,10 +2,12 @@ import { GetStaticProps, GetStaticPaths } from 'next'
 
 import Layout from '../../components/Layout'
 import Atom from '../../chem/paricles/Atom'
-import React from 'react'
+import React, { CSSProperties } from 'react'
 import ParticleBuilderCached from '../../chem/ParticleBuilderCached'
 import ISOTOPES from '../../chem/literals/isotopes'
 import ElementDetails from '../../components/ElementDetails'
+import Link from 'next/link'
+import ELEMENTS from '../../chem/literals/elements'
 
 type Props = {
   Z: number
@@ -21,8 +23,20 @@ export default class extends React.Component<Props, State> {
 
   public render () {
     const { atom } = this.state;
+    const links: Array<JSX.Element> = [];
+    const linkStyle: CSSProperties = { fontSize: '.7em', paddingRight: '5px', display: 'inline-block' };
+    for (let Z = 1; Z <= 118; Z++) {
+      links.push(
+        <span key={Z} style={linkStyle}>{atom.nucleus.Z === Z ? ELEMENTS[Z] : <Link href={`/elements/${Z}`}>
+          <a>{ELEMENTS[Z]}</a>
+        </Link>}</span>
+      );
+    }
     return (
-      <Layout title='Element detail'>
+      <Layout title={atom.nucleus.name}>
+        <header>
+          <nav>{links}</nav>
+        </header>
         <ElementDetails atom={atom}/>
       </Layout>
     )

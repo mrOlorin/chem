@@ -4,21 +4,22 @@ import Electron from '../paricles/Electron'
 interface ElectronCloudMeshOptions {
   electrons: Array<Electron>;
   timeScale: number;
+  timeShift: number;
   size: number;
 }
 
 export default class ElectronCloudMesh extends THREE.Points {
   public readonly material: THREE.RawShaderMaterial;
   public readonly options: ElectronCloudMeshOptions;
-  private readonly timeShift: number;
+
   public constructor (options: Partial<ElectronCloudMeshOptions>) {
     super();
     this.options = {
-      timeScale: 0.1,
+      timeScale: 0.01,
+      timeShift: 0,
       size: 100,
       ...options
     } as ElectronCloudMeshOptions;
-    this.timeShift = this.options.electrons.length * 10;
     this.material = this.buildMaterial();
     this.geometry = this.buildGeometry();
     this.onBeforeRender = this.tick.bind(this);
@@ -27,7 +28,7 @@ export default class ElectronCloudMesh extends THREE.Points {
   public tick = (_renderer: THREE.Renderer, _scene: THREE.Scene, camera: THREE.Camera) => {
     camera.getWorldPosition(this.material.uniforms.rayOrigin.value);
     camera.getWorldDirection(this.material.uniforms.rayDirection.value);
-    this.material.uniforms.uTime.value = performance.now() * this.options.timeScale + this.timeShift;
+    this.material.uniforms.uTime.value = performance.now() * this.options.timeScale;
   }
 
   private buildGeometry (): THREE.BufferGeometry {
@@ -38,46 +39,12 @@ export default class ElectronCloudMesh extends THREE.Points {
     return geometry;
   }
 
-  // http://en.wikipedia.org/wiki/Table_of_spherical_harmonics#Real_spherical_harmonics
-  private sphericalHarmonic: { [l: number]: { [m: number]: string } } = {
-    0: {
-      0: '0.28209479177387814'
-    },
-    1: {
-      [-1]: '0.4886025119029199 * (p.y / r)',
-      [0]: '0.4886025119029199 * (p.z / r)',
-      [1]: '0.4886025119029199 * (p.x / r)'
-    },
-    2: {
-      [-2]: '1.0925484305920792 * ((p.x * p.y) / (r2))',
-      [-1]: '1.0925484305920792 * ((p.y * p.z) / (r2))',
-      [0]: '0.31539156525252005 * ((-(p.x * p.x) - (p.y * p.y) + 2.0 * (p.z * p.z)) / (r2))',
-      [1]: '1.0925484305920792 * ((p.z * p.x) / (r2))',
-      [2]: '0.5462742152960396 * (((p.x * p.x) - (p.y * p.y)) / (r2))'
-    },
-    3: {
-      [-3]: '0.5900435899266435 * (((3.0 * p.x * p.x - p.y * p.y) * p.y) / (r3))',
-      [-2]: '2.890611442640554 * ((p.x * p.y * p.z) / (r3))',
-      [-1]: '0.4570457994644658 * ((p.y * (4.0 * p.z * p.z - p.x * p.x - p.y * p.y)) / (r3))',
-      [0]: '0.3731763325901154 * ((p.z * (2.0 * p.z * p.z - 3.0 * p.x * p.x - 3.0 * p.y * p.y)) / (r3))',
-      [1]: '0.4570457994644658 * ((p.x * (4.0 * p.z * p.z - p.x * p.x - p.y * p.y)) / (r3))',
-      [2]: '1.445305721320277 * (((p.x * p.x - p.y * p.y) * p.z) / (r3))',
-      [3]: '0.5900435899266435 * (((p.x * p.x - 3.0 * p.y * p.y) * p.x) / (r3))'
-    },
-    4: {
-      [-4]: '2.5033429417967046 * (((p.x * p.y) * (p.x * p.x - p.y * p.y)) / (r4))',
-      [-3]: '1.7701307697799304 * (((3. * (p.x * p.x) - (p.y * p.y)) * p.y * p.z) / (r4))',
-      [-2]: '0.9461746957575601 * (((p.x * p.y) * (7. * (p.z * p.z) - (r2))) / (r4))',
-      [-1]: '0.6690465435572892 * (((p.y * p.z) * (7. * (p.z * p.z) - 3. * (r2))) / (r4))',
-      [0]: '0.10578554691520431 * ((35. * (p.z * p.z * p.z * p.z) - 30. * (p.z * p.z) * (r2) + 3. * (r4)) / (r4))',
-      [1]: '0.6690465435572892 * (((p.x * p.z) * (7. * p.z * p.z - 3. * (r2))) / (r4))',
-      [2]: '0.47308734787878004 * (((p.x * p.x - p.y * p.y) * (7. * (p.z * p.z) - (r2))) / (r4))',
-      [3]: '1.7701307697799304 * (((p.x * p.x - 3. * (p.y * p.y)) * p.x * p.z) / (r4))',
-      [4]: '0.6258357354491761 * (((p.x * p.x) * (p.x * p.x - 3. * (p.y * p.y)) - (p.y * p.y) * (3. * (p.x * p.x) - p.y * p.y)) / (r4))'
-    }
-  }
-
   private buildMaterial (): THREE.ShaderMaterial {
+    const shells = this.options.electrons.reduce((acc: Array<Array<Electron>>, electron: Electron) => {
+      if (!acc[electron.n]) acc[electron.n] = [];
+      acc[electron.n].push(electron);
+      return acc;
+    }, []).filter(shell => shell.length > 0);
     return new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 1.0 },
@@ -116,14 +83,14 @@ export default class ElectronCloudMesh extends THREE.Points {
           vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
           gl_Position = projectionMatrix * mvPosition;
           gl_PointSize = uPointSize / -mvPosition.z;
-          lightPos = vec3(1., 2., -4.);
-          vTime = .1 * vec4(uTime, uTime * .5, uTime * .25, uTime * .125);
+          lightPos = vec3(1., 2., -3.);
+          vTime = vec4(uTime, uTime * .5, uTime * .25, uTime * .125);
         }
       `,
       fragmentShader: `
-        #define MAX_STEPS 64
+        #define MAX_STEPS 128
         #define MIN_DIST .01
-        #define FOG_DIST 5.
+        #define FOG_DIST 10.
         #define MAX_DIST FOG_DIST
         #define FOG_COLOR vec3(1.,1.,1.)
         #define swizzleStep vec2(MIN_DIST, 0)
@@ -176,34 +143,63 @@ export default class ElectronCloudMesh extends THREE.Points {
           float t = x*x*(3.0 - 2.0*x);
           return mix(a, b, t);
         }
-        float getDistance(vec3 p) {
-          p.z += 3.7;
+        vec2 cExp(in float x) {
+          float s = sin(x);
+          return vec2(-s, s) + cos(x);
+        }
+        void transform(inout vec3 p) {
+          p.z += 1.7;
           rotate(p.yz, vTime.w);
           rotate(p.xz, vTime.z);
           rotate(p.xy, vTime.w);
+        } 
+        float getDistance(vec3 p) {
+          transform(p);
           float r = length(p);
           float r2 = r * r;
           float r3 = r2 * r;
           float r4 = r3 * r;
           float rThird = r * .3;
-          float dist = MAX_DIST;
-          ${this.options.electrons.map(e => `
-          dist = min(dist, rThird - abs(${this.sphericalHarmonic[e.l][e.m]}));
-          `).join("\n")}
-          return dist;
+          float sh;
+          ${shells.map(shell => shell.map(e => `
+            sh = max(sh, ${e.sphericalHarmonic} * ${e.ms});
+          `).join("\n")).join("\n")}
+          return rThird - sh;
         }
-
-        vec2 cExp(float x) {
-          float s = sin(x);
-          return vec2(-s, s) + cos(x);
-        }
-
         void getMaterial(inout HitObject hitObject) {
-          hitObject.material.color = vec4(1., 1., 1., 1.);
+          vec3 p = hitObject.point;
+          transform(p);
+          float r = length(p);
+          float r2 = r * r;
+          float r3 = r2 * r;
+          float r4 = r3 * r;
+          float sh = 0.;
+          ${shells.map(shell => shell.map(e => `
+            sh += ${e.sphericalHarmonic} * ${e.ms};
+          `).join("\n")).join("\n")}
+          vec2 esh = cExp(sh);
+
+          // vec3 magentaYellow = vec3(1., esh);
+          // vec3 orangeGreen = vec3(esh, 0.);
+          // vec3 purpleBlue = vec3(1.-esh, 1.);
+          // vec3 redGreenLight = vec3(esh, 1.);
+          // vec3 magentaYellowLight = vec3(1., esh);
+          // vec3 blueGreen = 1. - vec3(esh.x, 0., esh.y);
+          // vec3 pinkPink = 1. - vec3(esh.x, 0., esh.y);
+          // vec3 blueGreenLight = vec3(0., esh);
+          // vec3 purpleRed = vec3(esh.x, 0., esh.y);
+
+          vec3 blueOrange = vec3(1. - esh.x, 0., 1. - esh.y);
+          //vec3 redGreen = vec3(1. - esh, 0.);
+          //vec3 yellowBlue = vec3(esh.x, 1., esh.y);
+          //vec3 purpleGreen = vec3(0., 1. - esh);
+
+          vec3 color = blueOrange;
+          hitObject.material.color = vec4(color, 1.);
           hitObject.material.diffuse = .4;
           hitObject.material.specular = .4;
-          hitObject.material.ambient = .2;
-          hitObject.material.shininess = 1.;
+          hitObject.material.ambient = .3;
+          hitObject.material.shininess = .8;
 
           vec3 lightDir = normalize(hitObject.point - lightPos);
           float diffuse = hitObject.material.diffuse * dot(hitObject.normal, lightDir);

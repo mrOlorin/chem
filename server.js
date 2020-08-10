@@ -29,7 +29,7 @@ nextApp.prepare().then(() => {
     console.log('> Ready on http://localhost:3000')
   })
 
-  app.get('/orbitals', (req, res) => {
+  app.get('/energyLevels', (req, res) => {
     console.log('messages');
     res.json(messages);
   })

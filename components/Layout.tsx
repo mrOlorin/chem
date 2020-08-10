@@ -33,10 +33,6 @@ export default class Layout extends React.Component<Props> {
             |{' '}
             <Link href="/nuclides">
               <a>Нуклиды</a>
-            </Link>{' '}
-            |{' '}
-            <Link href="/about">
-              <a>О</a>
             </Link>
           </nav>
         </header>
