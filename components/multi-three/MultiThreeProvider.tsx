@@ -1,6 +1,6 @@
-import React, { Component } from 'react'
-import MultiThree from '../utils/MultiThree'
-import { MultiThreeContextType, MultiThreeContext } from './MultiThreeContext'
+import React, { Component } from 'react';
+import MultiThree from '../../utils/MultiThree';
+import { MultiThreeContextType, MultiThreeContext } from './MultiThreeContext';
 
 type State = Partial<MultiThreeContextType>;
 
@@ -14,9 +14,8 @@ export default class MultiThreeProvider extends Component<{}, State> {
   }
 
   public componentDidMount () {
-    this.setState({
-      multiThree: new MultiThree(this.sceneRef.current as HTMLCanvasElement)
-    });
+    const multiThree = new MultiThree(this.sceneRef.current as HTMLCanvasElement);
+    this.setState({ multiThree });
   }
 
   public componentWillUnmount () {
@@ -29,7 +28,7 @@ export default class MultiThreeProvider extends Component<{}, State> {
     return (
       <div>
         <canvas ref={this.sceneRef}/>
-        {multiThree && <MultiThreeContext.Provider value={{ multiThree }} children={children} />}
+        {multiThree && <MultiThreeContext.Provider value={{ multiThree }} children={children}/>}
       </div>
     )
   }

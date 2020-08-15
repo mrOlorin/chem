@@ -1,10 +1,9 @@
 import * as THREE from 'three';
-
-import React, { RefObject } from 'react'
-import Nucleus from '../chem/paricles/Nucleus'
-import { MultiThreeScene } from '../utils/MultiThree'
-import NucleusMesh from '../chem/mesh/NucleusMesh'
-import { MultiThreeContext } from './MultiThreeContext'
+import React, { RefObject } from 'react';
+import Nucleus from '../../chem/paricles/Nucleus';
+import { MultiThreeScene } from '../../utils/MultiThree';
+import NucleusMesh from '../../chem/mesh/NucleusMesh';
+import { MultiThreeContext } from '../multi-three/MultiThreeContext';
 
 type Props = {
   nucleus: Nucleus,

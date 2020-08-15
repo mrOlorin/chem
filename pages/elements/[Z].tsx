@@ -1,13 +1,12 @@
-import { GetStaticProps, GetStaticPaths } from 'next'
+import { GetStaticProps, GetStaticPaths } from 'next';
 
-import Layout from '../../components/Layout'
-import Atom from '../../chem/paricles/Atom'
-import React, { CSSProperties } from 'react'
-import ParticleBuilderCached from '../../chem/ParticleBuilderCached'
-import ISOTOPES from '../../chem/literals/isotopes'
-import ElementDetails from '../../components/ElementDetails'
-import Link from 'next/link'
-import ELEMENTS from '../../chem/literals/elements'
+import Layout from '../../components/Layout';import Atom from '../../chem/paricles/Atom';
+import React, { CSSProperties } from 'react';
+import ParticleBuilderCached from '../../chem/ParticleBuilderCached';
+import ISOTOPES from '../../chem/literals/isotopes';
+import ElementDetails from '../../components/elements/ElementDetails';
+import Link from 'next/link';
+import ELEMENTS from '../../chem/literals/elements';
 
 type Props = {
   Z: number

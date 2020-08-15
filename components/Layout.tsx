@@ -1,7 +1,7 @@
-import React, { ReactNode } from 'react'
-import Link from 'next/link'
-import Head from 'next/head'
-import MultiThreeProvider from './MultiThreeProvider'
+import React, { ReactNode } from 'react';
+import Link from 'next/link';
+import Head from 'next/head';
+import MultiThreeProvider from './multi-three/MultiThreeProvider';
 
 type Props = {
   children?: ReactNode
@@ -9,7 +9,7 @@ type Props = {
 }
 export default class Layout extends React.Component<Props> {
   render () {
-    const { title = 'This is the default title', children } = this.props;
+    const { title, children } = this.props;
     return (
       <div>
         <Head>
@@ -36,7 +36,7 @@ export default class Layout extends React.Component<Props> {
             </Link>
           </nav>
         </header>
-        <MultiThreeProvider children={children} />
+        <MultiThreeProvider children={children}/>
         <footer>
         </footer>
       </div>

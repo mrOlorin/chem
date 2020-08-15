@@ -2,7 +2,7 @@ import Layout from '../../components/Layout';
 import * as React from 'react';
 import { ElectronShell } from '../../chem/paricles/Atom';
 import ParticleBuilderCached from '../../chem/ParticleBuilderCached';
-import OrbitalList from '../../components/OrbitalList';
+import OrbitalList from '../../components/orbitals/OrbitalList';
 
 type State = {
   subLevels: ElectronShell;

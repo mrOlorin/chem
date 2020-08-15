@@ -28,7 +28,7 @@ export default class ElectronCloudMesh extends THREE.Points {
   public tick = (_renderer: THREE.Renderer, _scene: THREE.Scene, camera: THREE.Camera) => {
     camera.getWorldPosition(this.material.uniforms.rayOrigin.value);
     camera.getWorldDirection(this.material.uniforms.rayDirection.value);
-    this.material.uniforms.uTime.value = performance.now() * this.options.timeScale;
+    this.material.uniforms.uTime.value = performance.now() * this.options.timeScale + this.options.timeShift;
   }
 
   private buildGeometry (): THREE.BufferGeometry {
@@ -104,7 +104,7 @@ export default class ElectronCloudMesh extends THREE.Points {
         in vec3 lightPos;
 
         struct Material {
-          vec4 color;
+          vec3 color;
           float diffuse;
           float specular;
           float ambient;
@@ -149,9 +149,10 @@ export default class ElectronCloudMesh extends THREE.Points {
         }
         void transform(inout vec3 p) {
           p.z += 1.7;
-          rotate(p.yz, vTime.w);
-          rotate(p.xz, vTime.z);
-          rotate(p.xy, vTime.w);
+          p.yz = p.zy;
+          // rotate(p.yz, vTime.w);
+          // rotate(p.xz, vTime.z);
+          // rotate(p.xy, vTime.w);
         } 
         float getDistance(vec3 p) {
           transform(p);
@@ -162,7 +163,7 @@ export default class ElectronCloudMesh extends THREE.Points {
           float rThird = r * .3;
           float sh;
           ${shells.map(shell => shell.map(e => `
-            sh = max(sh, ${e.sphericalHarmonic} * ${e.ms});
+            sh = max(sh, abs(${e.sphericalHarmonic}) * ${e.ms} * cos(vTime.w));
           `).join("\n")).join("\n")}
           return rThird - sh;
         }
@@ -175,7 +176,7 @@ export default class ElectronCloudMesh extends THREE.Points {
           float r4 = r3 * r;
           float sh = 0.;
           ${shells.map(shell => shell.map(e => `
-            sh += ${e.sphericalHarmonic} * ${e.ms};
+            sh += ${e.sphericalHarmonic} * ${e.ms} * cos(vTime.w);
           `).join("\n")).join("\n")}
           vec2 esh = cExp(sh);
 
@@ -195,7 +196,7 @@ export default class ElectronCloudMesh extends THREE.Points {
           //vec3 purpleGreen = vec3(0., 1. - esh);
 
           vec3 color = blueOrange;
-          hitObject.material.color = vec4(color, 1.);
+          hitObject.material.color = color;
           hitObject.material.diffuse = .4;
           hitObject.material.specular = .4;
           hitObject.material.ambient = .3;
@@ -205,9 +206,9 @@ export default class ElectronCloudMesh extends THREE.Points {
           float diffuse = hitObject.material.diffuse * dot(hitObject.normal, lightDir);
           float specular = pow(max(0., hitObject.material.specular * dot(lightDir, reflect(hitObject.rayDirection, hitObject.normal))), hitObject.material.shininess);
 
-          hitObject.material.color.xyz = 
+          hitObject.material.color = 
             (hitObject.material.ambient + diffuse) 
-            * pow(hitObject.material.color.xyz, gammaCorrection)
+            * pow(hitObject.material.color, gammaCorrection)
             + specular;
         }
         void rayMarch(inout HitObject obj) {
@@ -239,7 +240,7 @@ export default class ElectronCloudMesh extends THREE.Points {
           }
           getNormal(hitObject);
           getMaterial(hitObject);
-          return hitObject.material.color;
+          return vec4(hitObject.material.color, 1.);
         }
         void main() {
           vec2 uv = gl_PointCoord - vec2(.5);

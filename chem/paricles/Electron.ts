@@ -8,13 +8,12 @@ export type QuantumNumbers = {
 }
 
 export default class Electron implements QuantumNumbers {
+  public static mass: number = 0.51099895000e6; // эВ
   public n: number;
   public l: number;
   public m: number;
   public ms: number;
   public atom?: Atom;
-
-  public static mass = 0.51099895000e6; // эВ
 
   public constructor (props: QuantumNumbers, atom?: Atom) {
     this.n = props.n;
@@ -24,28 +23,23 @@ export default class Electron implements QuantumNumbers {
     this.atom = atom;
   }
 
-  // Константа Ридберга
-  public get R () {
-    return this.atom ? this.atom.R : 0;
-  }
-
-  public get rBohr () {
+  public get rBohr (): number {
     return this.atom ? this.atom.electronRadiusOnLevel(this.n) : 0;
   }
 
-  public get v () {
+  public get v (): number {
     return this.atom ? this.atom.electronVelocityOnLevel(this.n) : 0;
   }
 
-  public get energy () {
+  public get energy (): number {
     return this.atom ? this.atom.energyOnLevel(this.n) : 0;
   }
 
-  public get psi () {
-    return Math.sqrt(((2. / (this.n * this.rBohr)) ** 3));
+  public get psi (): number {
+    return Math.sqrt((2. / (this.n * this.rBohr)) ** 3);
   }
 
-  public get sphericalHarmonic () {
+  public get sphericalHarmonic (): string {
     return Electron.sphericalHarmonics[this.l][this.m];
   }
 

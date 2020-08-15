@@ -1,8 +1,8 @@
-import Layout from '../../components/Layout'
-import * as React from 'react'
-import NuclideList from '../../components/NuclideList'
-import ParticleBuilderCached from '../../chem/ParticleBuilderCached'
-import Nucleus from '../../chem/paricles/Nucleus'
+import Layout from '../../components/Layout';
+import * as React from 'react';
+import NuclideList from '../../components/nuclides/NuclideList';
+import ParticleBuilderCached from '../../chem/ParticleBuilderCached';
+import Nucleus from '../../chem/paricles/Nucleus';
 
 type Props = void;
 type State = {

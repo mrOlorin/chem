@@ -80,38 +80,37 @@ export default class Atom {
     return this.nucleus.Z - this.S;
   }
 
-  public get electronConfiguration (): string {
+  public getElectronConfiguration (format: (n: number) => string): string {
     return this.energyLevels.map(
       (energySublevel: any, n: any) => energySublevel.map(
-        (count: any, l: any) => n + 'spdf'[l] + Utils.superPower(count)
+        (count: any, l: any) => n + 'spdf'[l] + format(count)
       ).join('')
     ).join('');
+  }
+
+  public getElectronConfigurationShort (format: (n: number) => string): string {
+    const outerLevel = this.maxN;
+    return this.energyLevels.map(
+      (energySublevel: any, n: any) => energySublevel.map(
+        (count: any, l: any) => (count < 2 * (2 * l + 1) || n === outerLevel) ? (n + 'spdf'[l] + format(count)) : ''
+      ).join('')
+    ).join('');
+  }
+
+  public get electronConfiguration (): string {
+    return this.getElectronConfiguration(n => Utils.superPower(n));
   }
 
   public get electronConfigurationTex (): string {
-    return this.energyLevels.map(
-      (energySublevel: any, n: any) => energySublevel.map(
-        (count: any, l: any) => n + 'spdf'[l] + ` ^ ${count}`
-      ).join('')
-    ).join('');
+    return this.getElectronConfiguration(n => ` ^ ${n}`);
   }
 
   public get electronConfigurationShort (): string {
-    const outerLevel = this.maxN;
-    return this.energyLevels.map(
-      (energySublevel: any, n: any) => energySublevel.map(
-        (count: any, l: any) => (count < 2 * (2 * l + 1) || n === outerLevel) ? (n + 'spdf'[l] + Utils.superPower(count)) : ''
-      ).join('')
-    ).join('');
+    return this.getElectronConfigurationShort(n => Utils.superPower(n));
   }
 
   public get electronConfigurationShortTex (): string {
-    const outerLevel = this.maxN;
-    return this.energyLevels.map(
-      (energySublevel: any, n: any) => energySublevel.map(
-        (count: any, l: any) => (count < 2 * (2 * l + 1) || n === outerLevel) ? (n + 'spdf'[l] + ` ^ ${count}`) : ''
-      ).join('')
-    ).join('');
+    return this.getElectronConfigurationShort(n => ` ^ ${n}`);
   }
 
   public static * quantumNumbersGenerator (): IterableIterator<QuantumNumbers> {

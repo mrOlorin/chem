@@ -1,6 +1,6 @@
-import React from 'react'
-import NuclideListItem from './NuclideListItem'
-import Nucleus from '../chem/paricles/Nucleus'
+import React from 'react';
+import NuclideListItem from './NuclideListItem';
+import Nucleus from '../../chem/paricles/Nucleus';
 
 type Props = {
   nuclides: Array<Nucleus>,

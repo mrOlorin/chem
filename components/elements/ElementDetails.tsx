@@ -1,16 +1,16 @@
 import * as THREE from 'three';
 import React, { RefObject } from 'react';
-import { MultiThreeScene } from '../utils/MultiThree';
-import Atom from '../chem/paricles/Atom';
-import ElectronCloudMesh from '../chem/mesh/ElectronCloudMesh';
-import { MultiThreeContext } from './MultiThreeContext';
-import ELECTRON_CONFIGURATIONS from '../chem/literals/electronConfigurations';
-import Electron from '../chem/paricles/Electron';
-import Utils from '../utils/Utils';
-import { e } from '../chem/literals/constants';
+import { MultiThreeScene } from '../../utils/MultiThree';
+import Atom from '../../chem/paricles/Atom';
+import ElectronCloudMesh from '../../chem/mesh/ElectronCloudMesh';
+import { MultiThreeContext } from '../multi-three/MultiThreeContext';
+import ELECTRON_CONFIGURATIONS from '../../chem/literals/electronConfigurations';
+import Electron from '../../chem/paricles/Electron';
+import Utils from '../../utils/Utils';
+import { e } from '../../chem/literals/constants';
 // @ts-ignore
 import { InlineMath } from 'react-katex';
-import Nucleus from '../chem/paricles/Nucleus';
+import Nucleus from '../../chem/paricles/Nucleus';
 
 type Props = {
   atom: Atom,
@@ -48,6 +48,16 @@ export default class ElementDetails extends React.Component<Props, State> {
     const { atom } = this.state;
     const { av, as, ac, at, ap } = atom.nucleus.energyCoefficients;
     return <section>
+      <aside id="scene"
+             ref={this.sceneRef}
+             style={{
+               width: '600px',
+               height: '600px',
+               position: 'fixed',
+               right: '0',
+               top: '0',
+               zIndex: -1
+             }}/>
       <h1>{atom.nucleus.name}</h1>
       <dl>
         <dt>Номер в таблице</dt>
@@ -184,48 +194,34 @@ export default class ElementDetails extends React.Component<Props, State> {
         </span>}
         <details>
           <InlineMath math={atom.electronConfigurationTex}/>
+          <table style={{ textAlign: 'center' }}>
+            <thead>
+            <tr>
+              <td>n</td>
+              <td>l</td>
+              <td>m</td>
+              <td>ms</td>
+              <td>Боровский радиус</td>
+              <td>Скорость</td>
+              <td>Энергия</td>
+            </tr>
+            </thead>
+            <tbody>
+            {atom.electrons.map((electron: Electron, i: number) =>
+              <tr key={i}>
+                <td>{electron.n}</td>
+                <td>{electron.l}</td>
+                <td>{electron.m}</td>
+                <td>{electron.ms}</td>
+                <td title={'' + electron.rBohr}>{Utils.roundSuperPower(electron.rBohr)}м</td>
+                <td title={'' + electron.v}>{Utils.roundSuperPower(electron.v)}м/с</td>
+                <td title={'' + electron.energy}>{Utils.roundSuperPower(electron.energy)}</td>
+              </tr>
+            )}
+            </tbody>
+          </table>
         </details>
       </dd>
-
-      <dt>Электроны</dt>
-      <dd>
-        <table style={{ textAlign: 'center' }}>
-          <thead>
-          <tr>
-            <td>n</td>
-            <td>l</td>
-            <td>m</td>
-            <td>ms</td>
-            <td>Боровский радиус</td>
-            <td>Скорость</td>
-            <td>Энергия</td>
-          </tr>
-          </thead>
-          <tbody>
-          {atom.electrons.map((electron: Electron, i: number) =>
-            <tr key={i}>
-              <td><code>{electron.n}</code></td>
-              <td><code>{electron.l}</code></td>
-              <td><code>{electron.m}</code></td>
-              <td><code>{electron.ms}</code></td>
-              <td><code title={'' + electron.rBohr}>{Utils.roundSuperPower(electron.rBohr)}м</code></td>
-              <td><code title={'' + electron.v}>{Utils.roundSuperPower(electron.v)}м/с</code></td>
-              <td><code title={'' + electron.energy}>{Utils.roundSuperPower(electron.energy)}</code></td>
-            </tr>
-          )}
-          </tbody>
-        </table>
-      </dd>
-      <aside id="scene"
-             ref={this.sceneRef}
-             style={{
-               width: '600px',
-               height: '600px',
-               position: 'fixed',
-               right: '0',
-               top: '0',
-               zIndex: -1
-             }}/>
     </section>
   }
 }

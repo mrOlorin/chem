@@ -1,8 +1,8 @@
-import * as React from 'react'
-import Layout from '../../components/Layout'
-import ParticleBuilderCached from '../../chem/ParticleBuilderCached'
-import Atom from '../../chem/paricles/Atom'
-import ElementList from '../../components/ElementList'
+import * as React from 'react';
+import Layout from '../../components/Layout';
+import ParticleBuilderCached from '../../chem/ParticleBuilderCached';
+import Atom from '../../chem/paricles/Atom';
+import ElementList from '../../components/elements/ElementList';
 
 type State = {
   atoms: Array<Atom>;

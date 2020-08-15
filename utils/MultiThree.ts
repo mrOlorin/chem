@@ -3,15 +3,14 @@ import * as THREE from 'three';
 export interface MultiThreeScene {
   element: Element;
   scene: THREE.Scene;
-  tick?: (time: number, deltaTime: number) => void;
 }
 
 export default class MultiThree {
-  public camera: THREE.Camera;
-  public scenes: { [key: string]: MultiThreeScene } = {};
-  public readonly visibleScenes: { [id: string]: MultiThreeScene } = {};
-  public canvas: HTMLCanvasElement;
-  public renderer: THREE.WebGLRenderer;
+  public readonly camera: THREE.Camera;
+  public readonly canvas: HTMLCanvasElement;
+  public readonly renderer: THREE.WebGLRenderer;
+  private scenes: { [key: string]: MultiThreeScene } = {};
+  private visibleScenes: { [id: string]: MultiThreeScene } = {};
   private doRender: boolean = false;
   private intersectionObserver: IntersectionObserver;
 

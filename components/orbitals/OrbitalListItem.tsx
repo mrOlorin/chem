@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import React, { RefObject } from 'react';
-import { MultiThreeScene } from '../utils/MultiThree';
-import Electron from '../chem/paricles/Electron';
-import ElectronCloudMesh from '../chem/mesh/ElectronCloudMesh';
-import { MultiThreeContext } from './MultiThreeContext';
+import { MultiThreeScene } from '../../utils/MultiThree';
+import Electron from '../../chem/paricles/Electron';
+import ElectronCloudMesh from '../../chem/mesh/ElectronCloudMesh';
+import { MultiThreeContext } from '../multi-three/MultiThreeContext';
 
 type Props = {
   electrons: Array<Electron>;
@@ -13,7 +13,7 @@ type State = {
   electrons: Array<Electron>;
 }
 export default class OrbitalListItem extends React.Component<Props, State> {
-  static contextType = MultiThreeContext;
+  public static readonly contextType = MultiThreeContext;
   private readonly sceneRef: RefObject<HTMLDivElement>;
 
   public constructor (props: Props) {
@@ -44,7 +44,6 @@ export default class OrbitalListItem extends React.Component<Props, State> {
     };
     return <div id={`orbital-${electrons[0].n}-${electrons[0].l}-${electrons[0].m}`}
                 style={style}
-                ref={this.sceneRef}>
-    </div>
+                ref={this.sceneRef} />
   }
 }

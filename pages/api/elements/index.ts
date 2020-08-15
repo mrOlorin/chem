@@ -1,5 +1,5 @@
-import { NextApiRequest, NextApiResponse } from 'next'
-import ELEMENTS from '../../../chem/literals/elements'
+import { NextApiRequest, NextApiResponse } from 'next';
+import ELEMENTS from '../../../chem/literals/elements';
 
 const handler = (_req: NextApiRequest, res: NextApiResponse) => {
   try {
