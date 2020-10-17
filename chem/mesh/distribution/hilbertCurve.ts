@@ -5,7 +5,7 @@ import Nucleus from '../../paricles/Nucleus'
 
 const hilbertPoints: Array<{ x: number, y: number, z: number }> = []; //GeometryUtils.hilbert3D(new THREE.Vector3(0.2, -0.2, 0), 1, 2);
 
-export default (isotope: Nucleus): NucleonDistribution => {
+const hilbertCurve = (isotope: Nucleus): NucleonDistribution => {
   const positions = new Float32Array(isotope.A * 3);
   const attributes = new Float32Array(isotope.A * 3);
 
@@ -28,3 +28,4 @@ export default (isotope: Nucleus): NucleonDistribution => {
   }
   return { positions, attributes };
 };
+export default hilbertCurve;

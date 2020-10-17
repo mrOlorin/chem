@@ -1,7 +1,7 @@
 import { NucleonDistribution } from './NucleonDistribution';
 import Nucleus from '../../paricles/Nucleus';
 
-export default (nucleus: Nucleus, scale: number = 1): NucleonDistribution => {
+const sphericalCurve = (nucleus: Nucleus, scale: number = 1): NucleonDistribution => {
   const sphericalCurve = (a: number, t: number): [number, number, number] => {
     const q = Math.sqrt(1 + a * a * t * t);
     return [
@@ -39,3 +39,4 @@ export default (nucleus: Nucleus, scale: number = 1): NucleonDistribution => {
   }
   return { positions, attributes };
 };
+export default sphericalCurve;

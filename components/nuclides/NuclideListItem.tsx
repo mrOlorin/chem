@@ -4,6 +4,7 @@ import Nucleus from '../../chem/paricles/Nucleus';
 import { MultiThreeScene } from '../../utils/MultiThree';
 import NucleusMesh from '../../chem/mesh/NucleusMesh';
 import { MultiThreeContext } from '../multi-three/MultiThreeContext';
+import ISOTOPES from "../../chem/literals/isotopes";
 
 type Props = {
   nucleus: Nucleus,
@@ -42,10 +43,14 @@ export default class NuclideListItem extends React.Component<Props, State> {
       width: '80px',
       border: '1px dashed #2c3e50'
     };
-    const { nucleus } = this.state;
+    const styleMain = {
+        ...style,
+        border: '2px dotted #2c3e50'
+    };
+    const {nucleus} = this.state;
     return <svg id={`nuclide-${nucleus.Z}-${nucleus.N}`}
                 className='nuclide-list-item'
-                style={style}
+                style={ISOTOPES[nucleus.Z][2] === nucleus.N ? styleMain : style}
                 ref={this.sceneRef}>
       <text x="2" y="10" fontSize="0.6em">
         <title>Массовое число</title>

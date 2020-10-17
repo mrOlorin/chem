@@ -29,10 +29,10 @@ export default class ElementListItem extends React.Component<Props, State> {
 
   private static buildScene (atom: Atom, element: SVGSVGElement): MultiThreeScene {
     const mesh = new ElectronCloudMesh({
-      electrons: atom.outerVacantElectrons,
-      timeShift: (-atom.maxN + atom.outerVacantLevel) * Math.PI,
-      timeScale: .03,
-      size: 70
+        electrons: atom.outerVacantElectrons,
+        // timeShift: (-atom.maxN + atom.outerVacantLevel) * Math.PI,
+        timeScale: .005,
+        size: 70
     });
     mesh.position.y += 0.1;
     const scene = new THREE.Scene();

@@ -1,7 +1,7 @@
 import { NucleonDistribution } from './NucleonDistribution';
 import Nucleus from '../../paricles/Nucleus'
 
-export default (nucleus: Nucleus, scale: number = 1): NucleonDistribution => {
+const sphere = (nucleus: Nucleus, scale: number = 1): NucleonDistribution => {
   const sphere = (radius: number = 1): [number, number, number] => {
     // http://mathworld.wolfram.com/SpherePointPicking.html
     const TAU = Math.PI * 2;
@@ -39,3 +39,4 @@ export default (nucleus: Nucleus, scale: number = 1): NucleonDistribution => {
   }
   return { positions, attributes };
 };
+export default sphere;

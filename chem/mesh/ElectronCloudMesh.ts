@@ -152,7 +152,7 @@ export default class ElectronCloudMesh extends THREE.Points {
           p.yz = p.zy;
           // rotate(p.yz, vTime.w);
           // rotate(p.xz, vTime.z);
-          // rotate(p.xy, vTime.w);
+          // rotate(p.xy, vTime.y);
         } 
         float getDistance(vec3 p) {
           transform(p);
@@ -163,7 +163,7 @@ export default class ElectronCloudMesh extends THREE.Points {
           float rThird = r * .3;
           float sh;
           ${shells.map(shell => shell.map(e => `
-            sh = max(sh, abs(${e.sphericalHarmonic}) * ${e.ms} * cos(vTime.w));
+            sh = max(sh, abs(${e.sphericalHarmonic}) * ${e.ms});
           `).join("\n")).join("\n")}
           return rThird - sh;
         }
@@ -195,8 +195,7 @@ export default class ElectronCloudMesh extends THREE.Points {
           //vec3 yellowBlue = vec3(esh.x, 1., esh.y);
           //vec3 purpleGreen = vec3(0., 1. - esh);
 
-          vec3 color = blueOrange;
-          hitObject.material.color = color;
+          hitObject.material.color = blueOrange;
           hitObject.material.diffuse = .4;
           hitObject.material.specular = .4;
           hitObject.material.ambient = .3;
