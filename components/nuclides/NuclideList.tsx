@@ -30,10 +30,10 @@ export default class NuclideList extends React.Component<Props, State> {
     const { nuclideRows } = this.state;
     return <table>
       <tbody>{
-        nuclideRows.map((nuclideRow, i) =>
+        nuclideRows.map((nuclideRow: Array<Nucleus>, i: number) =>
           <tr key={i}>
             <td colSpan={nuclideRow[0].N + 1}/>
-            {nuclideRow.map((nucleus, j) =>
+            {nuclideRow.map((nucleus: Nucleus, j: number) =>
               <td key={j}>
                 <NuclideListItem nucleus={nucleus}/>
               </td>

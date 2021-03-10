@@ -153,7 +153,13 @@ export default class ElectronCloudMesh extends THREE.Points {
           // rotate(p.yz, vTime.w);
           // rotate(p.xz, vTime.z);
           // rotate(p.xy, vTime.y);
-        } 
+        }
+
+        // Complex operations
+        #define product(a, b) vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x)
+        #define conjugate(a) vec2(a.x, -a.y)
+        #define divide(a, b) vec2(((a.x * b.x + a.y * b.y) / (b.x * b.x + b.y * b.y)),((a.y * b.x - a.x * b.y) / (b.x * b.x + b.y * b.y)))
+
         float getDistance(vec3 p) {
           transform(p);
           float r = length(p);
