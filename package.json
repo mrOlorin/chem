@@ -19,7 +19,7 @@
     "react-katex": "^2.0.2",
     "socket.io": "^3.1.2",
     "socket.io-client": "^3.1.2",
-    "three": "^0.126.1",
+    "three": "^0.137.0",
     "ts-node": "^9.1.1"
   },
   "devDependencies": {
